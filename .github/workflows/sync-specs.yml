@@ -1,0 +1,84 @@
+# Keeps the SDKs in step with the deployed API: fetches the public OpenAPI
+# specs from production, regenerates, runs every test suite and opens (or
+# updates) a pull request when anything changed. A spec that needs generator
+# support it doesn't have fails the run, which GitHub emails about.
+#
+# Pull requests opened with GITHUB_TOKEN don't trigger CI on their own, so
+# this job runs the same checks before opening one.
+name: Sync specs
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: sync-specs
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go/go.mod }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Fetch specs and regenerate
+        run: scripts/sync-specs.sh
+
+      - name: Anything changed?
+        id: diff
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat
+          fi
+
+      - name: Test TypeScript
+        if: steps.diff.outputs.changed == 'true'
+        working-directory: typescript
+        run: npm ci && npm test
+      - name: Test Python
+        if: steps.diff.outputs.changed == 'true'
+        working-directory: python
+        run: uv run pytest
+      - name: Test Go
+        if: steps.diff.outputs.changed == 'true'
+        working-directory: go
+        run: go vet ./... && go test ./...
+
+      - name: Summarize the spec change
+        if: steps.diff.outputs.changed == 'true'
+        id: summary
+        run: |
+          {
+            echo 'body<<BODY_EOF'
+            echo "The deployed API's OpenAPI specs changed; this regenerates the SDKs. Tests passed in the sync run."
+            echo
+            scripts/spec-diff.py
+            echo "To release: \`scripts/bump-version.sh X.Y.Z\`, commit, then push tags \`vX.Y.Z\` and \`go/vX.Y.Z\`."
+            echo 'BODY_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the pull request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: sync-specs
+          delete-branch: true
+          commit-message: Regenerate SDKs from the deployed API specs
+          title: Regenerate SDKs from the deployed API specs
+          body: ${{ steps.summary.outputs.body }}
+          labels: specs

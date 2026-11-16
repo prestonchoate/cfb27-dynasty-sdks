@@ -42,8 +42,13 @@ The types and endpoint methods are generated from the API's OpenAPI specs in
 only, plus `gofmt`). The transport in each language (auth, caching, retries,
 errors) is handwritten.
 
+The **Sync specs** workflow runs every 6 hours (and on demand from the Actions tab): it
+fetches the specs production serves, regenerates, runs every test suite and opens a
+`sync-specs` pull request summarizing what changed. Merge it, then release.
+
 ```sh
-scripts/sync-specs.sh ../cfb27-dynasty-api   # copy the latest specs and regenerate
+scripts/sync-specs.sh                         # fetch production's specs and regenerate
+scripts/sync-specs.sh ../cfb27-dynasty-api    # or use a local checkout's (undeployed) specs
 python3 codegen/gen.py --check                # CI: fail if generated code is stale
 
 (cd typescript && npm ci && npm test)
