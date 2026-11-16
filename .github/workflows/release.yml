@@ -31,7 +31,14 @@ jobs:
         with: { node-version: 24, registry-url: "https://registry.npmjs.org" }
       - run: npm ci
       - run: npm test
-      - run: npm publish --access public
+      - name: Publish unless this version is already on npm
+        run: |
+          v="$(node -p 'require("./package.json").version')"
+          if npm view "cfb27-dynasty@$v" version >/dev/null 2>&1; then
+            echo "cfb27-dynasty@$v already published; skipping"
+          else
+            npm publish --access public
+          fi
 
   pypi:
     needs: check-version
@@ -45,4 +52,4 @@ jobs:
       - run: uv run pytest
       - run: uv build
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with: { packages-dir: python/dist }
+        with: { packages-dir: python/dist, skip-existing: true }
