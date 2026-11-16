@@ -1,0 +1,31 @@
+[project]
+name = "cfb27-dynasty"
+version = "0.1.0"
+description = "Typed client for the CFB 27 Dynasty API"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["httpx>=0.27", "pydantic>=2.7"]
+keywords = ["cfb27", "college-football", "dynasty", "ea-sports"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Typing :: Typed",
+    "Framework :: AsyncIO",
+]
+
+[project.urls]
+Repository = "https://github.com/prestonchoate/cfb27-dynasty-sdks"
+
+[dependency-groups]
+dev = ["pytest>=8", "respx>=0.21", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cfb27_dynasty"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

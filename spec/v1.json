@@ -1,0 +1,4330 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "Dynasty API",
+  "version": "1.1.0",
+  "description": "Read-only cached data for one CFB 27 online dynasty. The dynasty comes from the API key, or for a partner key (cfbp_…) from the Dynasty-Id header. Data is as fresh as the last sync (see /league and /sync). Every authenticated response has a weak ETag built from the league's data version; send it back in If-None-Match to get 304 when nothing changed. Limit: 120 requests a minute per key (burst 60)."
+ },
+ "servers": [
+  {
+   "url": "/v1"
+  }
+ ],
+ "security": [
+  {
+   "bearer": []
+  },
+  {
+   "apiKeyHeader": []
+  }
+ ],
+ "tags": [
+  {
+   "name": "League",
+   "description": "The dynasty, its snapshot periods, seasons and sync runs"
+  },
+  {
+   "name": "Schedule",
+   "description": "Games and box scores"
+  },
+  {
+   "name": "Teams",
+   "description": "Standings, team stats and the dynasty's human coaches"
+  },
+  {
+   "name": "Players",
+   "description": "Player stats, rosters and skill groups"
+  },
+  {
+   "name": "Awards",
+   "description": "Awards, watch lists, All-Americans and league history"
+  },
+  {
+   "name": "Recruiting",
+   "description": "Recruits, transfer portal, commitments and classes"
+  },
+  {
+   "name": "Grades",
+   "description": "School grade rankings"
+  }
+ ],
+ "paths": {
+  "/league": {
+   "get": {
+    "operationId": "getLeague",
+    "tags": [
+     "League"
+    ],
+    "summary": "League summary, sync status, current period and cached seasons",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LeagueResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/periods": {
+   "get": {
+    "operationId": "listPeriods",
+    "tags": [
+     "League"
+    ],
+    "summary": "Periods (in-game weeks/stages) seen, newest first",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PeriodsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/seasons": {
+   "get": {
+    "operationId": "listSeasons",
+    "tags": [
+     "League"
+    ],
+    "summary": "Seasons with cached games, newest first",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SeasonsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/schedule": {
+   "get": {
+    "operationId": "listSchedule",
+    "tags": [
+     "Schedule"
+    ],
+    "summary": "A season's games",
+    "parameters": [
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "Season (calendar year). Default: the newest cached season.",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "week",
+      "in": "query",
+      "required": false,
+      "description": "Week index (0-based)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Team key: games involving this team",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "played",
+      "in": "query",
+      "required": false,
+      "description": "true/false",
+      "schema": {
+       "type": "boolean"
+      }
+     },
+     {
+      "name": "user_games",
+      "in": "query",
+      "required": false,
+      "description": "true: only games with a human coach",
+      "schema": {
+       "type": "boolean"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ScheduleResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/games/{key}": {
+   "get": {
+    "operationId": "getGame",
+    "tags": [
+     "Schedule"
+    ],
+    "summary": "One game, with its box score when cached. CPU-vs-CPU games' box scores are read and served on League Pro",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "Season (calendar year). Default: the newest cached season.",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GameResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/teams/{key}/schedule": {
+   "get": {
+    "operationId": "getTeamSchedule",
+    "tags": [
+     "Schedule"
+    ],
+    "summary": "A team's season from its side: location, opponent, outcome, scores, margin, matchup type, opponent's rank at game time",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "Season (calendar year). Default: the newest cached season.",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamScheduleResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/standings": {
+   "get": {
+    "operationId": "listStandings",
+    "tags": [
+     "Teams"
+    ],
+    "summary": "Every team's record, ratings, conference and poll rank",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StandingsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/team-stats": {
+   "get": {
+    "operationId": "listTeamStats",
+    "tags": [
+     "Teams"
+    ],
+    "summary": "Every team's cumulative season stats and NIL spend by position (weekly)",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TeamStatsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/members": {
+   "get": {
+    "operationId": "listMembers",
+    "tags": [
+     "Teams"
+    ],
+    "summary": "League members: ready to advance, autopilot, this week's result, recruiting hours",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MembersResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/player-stats": {
+   "get": {
+    "operationId": "listPlayerStats",
+    "tags": [
+     "Players"
+    ],
+    "summary": "Cumulative season stats for players on user-controlled teams (weekly)",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Team key",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlayerStatsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/awards": {
+   "get": {
+    "operationId": "listAwards",
+    "tags": [
+     "Awards"
+    ],
+    "summary": "Weekly award winners (players of the week)",
+    "parameters": [
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "Season. Default: newest with awards",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "week",
+      "in": "query",
+      "required": false,
+      "description": "Week index",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AwardsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/recruits": {
+   "get": {
+    "operationId": "listRecruits",
+    "tags": [
+     "Recruiting"
+    ],
+    "summary": "Every recruit in the national recruit search (weekly), in national rank order. Only what every league member sees in game: no scouted attributes, gem/bust or abilities, and dev trait only once a recruit has signed.",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "type",
+      "in": "query",
+      "required": false,
+      "description": "`recruits` (high school and JUCO), `transfers` (the transfer portal) or `overall` (both). Default: `recruits`. Transfer portal ranks are their own ranking and also start at 1.",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "recruits",
+        "transfers",
+        "overall"
+       ]
+      }
+     },
+     {
+      "name": "stars",
+      "in": "query",
+      "required": false,
+      "description": "Comma-separated star ratings, e.g. `4,5`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "position",
+      "in": "query",
+      "required": false,
+      "description": "Position, e.g. `QB`, `ATH`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "state",
+      "in": "query",
+      "required": false,
+      "description": "Home state, e.g. `TX`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "committed",
+      "in": "query",
+      "required": false,
+      "description": "`true`: committed or signed; `false`: neither",
+      "schema": {
+       "type": "boolean"
+      }
+     },
+     {
+      "name": "school",
+      "in": "query",
+      "required": false,
+      "description": "Committed or signed school, by team id (`team_id` in /team-stats)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RecruitsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/recruits/commits": {
+   "get": {
+    "operationId": "listRecruitCommits",
+    "tags": [
+     "Recruiting"
+    ],
+    "summary": "Commitment changes seen between weekly syncs, newest first: `commit` (with `previous_school` when it was a flip), `decommit`, `sign`. Changes before the league's first recruit sync aren't known; /recruits shows the current commitments.",
+    "parameters": [
+     {
+      "name": "type",
+      "in": "query",
+      "required": false,
+      "description": "`recruits` (high school and JUCO), `transfers` (the transfer portal) or `overall` (both). Default: `recruits`. Transfer portal ranks are their own ranking and also start at 1.",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "recruits",
+        "transfers",
+        "overall"
+       ]
+      }
+     },
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "Season. Default: newest with commitment changes",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "stars",
+      "in": "query",
+      "required": false,
+      "description": "Comma-separated star ratings, e.g. `4,5`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "kind",
+      "in": "query",
+      "required": false,
+      "description": "`commit`, `decommit` or `sign`",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "commit",
+        "decommit",
+        "sign"
+       ]
+      }
+     },
+     {
+      "name": "school",
+      "in": "query",
+      "required": false,
+      "description": "Committed or signed school, by team id (`team_id` in /team-stats)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RecruitCommitsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/recruits/classes": {
+   "get": {
+    "operationId": "listRecruitingClasses",
+    "tags": [
+     "Recruiting"
+    ],
+    "summary": "The recruiting Top Classes list: every team's class by national rank, with conference rank, class points, commits by star rating and NIL committed (weekly). `overall` counts recruits and transfers together.",
+    "parameters": [
+     {
+      "name": "type",
+      "in": "query",
+      "required": false,
+      "description": "Class type. Default: `overall`",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "overall",
+        "recruits",
+        "transfers"
+       ]
+      }
+     },
+     {
+      "name": "conference",
+      "in": "query",
+      "required": false,
+      "description": "Conference name, e.g. `SEC` (case-insensitive)",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Team key",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RecruitingClassesResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/rosters": {
+   "get": {
+    "operationId": "listRosters",
+    "tags": [
+     "Players"
+    ],
+    "summary": "Rosters, read once a period (each in-game week or stage; a team without one is read on the next sync): ratings, archetype, class, redshirt, dev trait, abilities, skill groups and unspent skill points. User teams by default; on paid plans CPU teams are read too and served with `scope=all` or `team`. `player_key` matches /player-stats.",
+    "parameters": [
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "Season. Default: the newest cached season",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Team key. A CPU team's roster needs a paid plan (without one, only user teams match)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "position",
+      "in": "query",
+      "required": false,
+      "description": "Position, e.g. `QB`, `LEDG` (case-insensitive)",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "scope",
+      "in": "query",
+      "required": false,
+      "description": "`user` (default): user teams. `all`: every FBS team, on paid plans (403 `plan_required` otherwise)",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "user",
+        "all"
+       ]
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RostersResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "description": "`plan_required`: `scope=all` without a paid plan; or a partner key whose access to that dynasty was not granted or was revoked",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/rosters/skills": {
+   "get": {
+    "operationId": "listRosterSkills",
+    "tags": [
+     "Players"
+    ],
+    "summary": "User team players' skill history over a season: each period's skill groups and unspent skill points, with the levels gained and points change since the period before. The game keeps no count of bought tiers; levels gained between periods are the purchases.",
+    "parameters": [
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "Season. Default: the newest cached season",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Team key",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "player",
+      "in": "query",
+      "required": false,
+      "description": "Player key",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RosterSkillsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/sync": {
+   "get": {
+    "operationId": "listSyncRuns",
+    "tags": [
+     "League"
+    ],
+    "summary": "Recent sync runs",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SyncRunsResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/school-grades": {
+   "get": {
+    "operationId": "listSchoolGrades",
+    "tags": [
+     "Grades"
+    ],
+    "summary": "Every school's My School (recruiting pitch) grades, ranked: Academic Prestige, Athletic Facilities, Brand Exposure, Campus Lifestyle, Championship Contender, Coach Prestige, Coach Stability, Program Tradition and Stadium Atmosphere, plus Conference Prestige (conferences, not schools). The game shows only about a dozen schools around yours; this is the whole country. Read weekly, the sync after the weekly pull.",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "grade",
+      "in": "query",
+      "required": false,
+      "description": "One grade, e.g. `Brand Exposure`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Only this team's rows, by team key (`team_key` in /standings)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SchoolGradesResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "description": "`plan_required`: the free plan doesn't include school grades; or a partner key whose access to that dynasty was not granted or was revoked",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/school-grades/playing-style": {
+   "get": {
+    "operationId": "listPlayingStyleGrades",
+    "tags": [
+     "Grades"
+    ],
+    "summary": "Playing Style rankings. Each ranks every school by one stat over one set of players (every WR archetype ranks WR receptions; Pass Protector linemen rank team passing yards), so archetypes that share a ranking are grouped. `stat_value` is each school's value of that stat. KR, PR, LS and gadget archetypes have no Playing Style stat and are left out.",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "archetype",
+      "in": "query",
+      "required": false,
+      "description": "Only the ranking for this archetype, e.g. `WR - Speedster`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Only this team's rows, by team key (`team_key` in /standings)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlayingStyleGradesResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "description": "`plan_required`: the free plan doesn't include school grades; or a partner key whose access to that dynasty was not granted or was revoked",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/school-grades/pro-potential": {
+   "get": {
+    "operationId": "listProPotentialGrades",
+    "tags": [
+     "Grades"
+    ],
+    "summary": "Pro Potential rankings by position group, with each school's draft picks at the group over the last four years. It changes once a year and is read once a season.",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "position_group",
+      "in": "query",
+      "required": false,
+      "description": "`QB`, `RB`, `WR`, `TE`, `OL`, `DL`, `LB`, `DB`, `K`, `P` or `LS`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Only this team's rows, by team key (`team_key` in /standings)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProPotentialGradesResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "description": "`plan_required`: the free plan doesn't include school grades; or a partner key whose access to that dynasty was not granted or was revoked",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/awards/heisman": {
+   "get": {
+    "operationId": "listHeismanWatch",
+    "tags": [
+     "Awards"
+    ],
+    "summary": "The Heisman Watch (top 4) as of the period, from the League Awards screen. Read weekly; in the preseason it ranks players before any game.",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HeismanWatchResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/awards/watch": {
+   "get": {
+    "operationId": "listAwardWatches",
+    "tags": [
+     "Awards"
+    ],
+    "summary": "Each annual award's ranked candidates (Awards Watch tab), or the Awards Winners tab, which shows the same candidates until the award is given. Read weekly. Awards without a watchlist yet (position awards until later in the season) are left out.",
+    "parameters": [
+     {
+      "name": "period",
+      "in": "query",
+      "required": false,
+      "description": "Period id, or `current`. Default: the newest period with data for this endpoint.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "tab",
+      "in": "query",
+      "required": false,
+      "description": "`watch` (default) or `winners`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "award",
+      "in": "query",
+      "required": false,
+      "description": "One award, e.g. `Maxwell Award`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AwardWatchesResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/awards/all-american": {
+   "get": {
+    "operationId": "listAllAmericans",
+    "tags": [
+     "Awards"
+    ],
+    "summary": "A season's All-American (`National`) and all-conference teams: the preseason 1st and 2nd teams, then the final 1st, 2nd and Freshman teams once awarded.",
+    "parameters": [
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "Season. Default: newest with awards",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "conference",
+      "in": "query",
+      "required": false,
+      "description": "`National` for All-American teams, or a conference name, e.g. `SEC`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AllAmericansResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
+  "/history": {
+   "get": {
+    "operationId": "listLeagueHistory",
+    "tags": [
+     "Awards"
+    ],
+    "summary": "League History (CFB History): national and conference championship games and every annual award's winner, all years, newest season first. Seasons before the dynasty began are the game's real history: no records, ranks, users or opponents. Read on each weekly sync.",
+    "parameters": [
+     {
+      "name": "season",
+      "in": "query",
+      "required": false,
+      "description": "One season",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "since",
+      "in": "query",
+      "required": false,
+      "description": "Seasons from this one on, e.g. the dynasty's first season to leave out real history",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "kind",
+      "in": "query",
+      "required": false,
+      "description": "Row kind",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "national_championship",
+        "conference_championship",
+        "award"
+       ]
+      }
+     },
+     {
+      "name": "title",
+      "in": "query",
+      "required": false,
+      "description": "A filter label (case-insensitive): `National Championships`, `Conference Championships` or an award, e.g. `Heisman Trophy`",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Rows for this team key: an award winner's team or either side of a championship",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LeagueHistoryResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "securitySchemes": {
+   "bearer": {
+    "type": "http",
+    "scheme": "bearer",
+    "description": "Authorization: Bearer cfbk_… (a dynasty key) or cfbp_… (a partner key, with Dynasty-Id)"
+   },
+   "apiKeyHeader": {
+    "type": "apiKey",
+    "in": "header",
+    "name": "X-API-Key"
+   }
+  },
+  "parameters": {
+   "DynastyId": {
+    "name": "Dynasty-Id",
+    "in": "header",
+    "required": false,
+    "description": "The dynasty to read. Required with a partner key (cfbp_…); ignored with a dynasty key, which names its own.",
+    "schema": {
+     "type": "integer"
+    }
+   }
+  },
+  "responses": {
+   "Unauthorized": {
+    "description": "Missing, invalid or revoked key",
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    }
+   },
+   "NotFound": {
+    "description": "Not found or not synced yet",
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    }
+   },
+   "RateLimited": {
+    "description": "Too many requests; see Retry-After",
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    }
+   },
+   "BadRequest": {
+    "description": "A malformed query parameter (bad_request), or a partner key without a Dynasty-Id header (dynasty_required)",
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    }
+   },
+   "Forbidden": {
+    "description": "A partner key whose access to that dynasty was not granted or was revoked",
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    }
+   },
+   "Error": {
+    "description": "Any other error, such as 500 internal; error.code says which",
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    }
+   }
+  },
+  "schemas": {
+   "Ability": {
+    "type": "object",
+    "required": [
+     "name",
+     "tier"
+    ],
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "tier": {
+      "type": "integer"
+     }
+    }
+   },
+   "AllAmericanPlayer": {
+    "type": "object",
+    "required": [
+     "player_key",
+     "name",
+     "first_name",
+     "last_name",
+     "position",
+     "jersey",
+     "overall",
+     "class_year",
+     "team_key",
+     "team_name",
+     "team_rank"
+    ],
+    "properties": {
+     "player_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "first_name": {
+      "type": "string"
+     },
+     "last_name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "jersey": {
+      "type": "integer"
+     },
+     "overall": {
+      "type": "integer"
+     },
+     "class_year": {
+      "type": "string",
+      "description": "`FR`, `SO`, `JR`, `SR`"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "team_name": {
+      "type": "string"
+     },
+     "team_rank": {
+      "type": "integer",
+      "description": "Poll rank; 0 outside the Top 25"
+     }
+    }
+   },
+   "AllAmericanTeam": {
+    "type": "object",
+    "required": [
+     "team",
+     "conference",
+     "players"
+    ],
+    "properties": {
+     "team": {
+      "type": "string",
+      "description": "e.g. `Preseason 1st Team All-American`"
+     },
+     "conference": {
+      "type": "string"
+     },
+     "players": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/AllAmericanPlayer"
+      }
+     }
+    }
+   },
+   "AllAmericansResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "season",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "season": {
+      "type": "integer",
+      "description": "The season (calendar year) the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/AllAmericanTeam"
+      }
+     }
+    }
+   },
+   "Award": {
+    "type": "object",
+    "required": [
+     "season",
+     "week",
+     "award",
+     "conference",
+     "player_key",
+     "name",
+     "position",
+     "jersey",
+     "overall",
+     "class_year",
+     "team_key",
+     "team_name",
+     "team_rank",
+     "game",
+     "stat_line"
+    ],
+    "properties": {
+     "season": {
+      "type": "integer"
+     },
+     "week": {
+      "type": "integer"
+     },
+     "award": {
+      "type": "string"
+     },
+     "conference": {
+      "type": "string"
+     },
+     "player_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "jersey": {
+      "type": "integer"
+     },
+     "overall": {
+      "type": "integer"
+     },
+     "class_year": {
+      "type": "string"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "team_name": {
+      "type": "string"
+     },
+     "team_rank": {
+      "type": "integer"
+     },
+     "game": {
+      "type": "string"
+     },
+     "stat_line": {
+      "type": "string"
+     }
+    }
+   },
+   "AwardCandidate": {
+    "type": "object",
+    "required": [
+     "rank",
+     "player_key",
+     "name",
+     "position",
+     "class_year",
+     "overall",
+     "score",
+     "team_key",
+     "team_name",
+     "team_record",
+     "team_rank",
+     "user_team"
+    ],
+    "properties": {
+     "rank": {
+      "type": "integer"
+     },
+     "player_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "class_year": {
+      "type": "string",
+      "description": "`FR`, `SO`, `JR`, `SR`"
+     },
+     "overall": {
+      "type": "integer"
+     },
+     "score": {
+      "type": "integer",
+      "description": "The award's running score"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "team_name": {
+      "type": "string"
+     },
+     "team_record": {
+      "type": "string"
+     },
+     "team_rank": {
+      "type": "integer",
+      "description": "Poll rank; 0 outside the Top 25"
+     },
+     "user_team": {
+      "type": "boolean"
+     }
+    }
+   },
+   "AwardWatch": {
+    "type": "object",
+    "required": [
+     "award",
+     "candidates"
+    ],
+    "properties": {
+     "award": {
+      "type": "string"
+     },
+     "candidates": {
+      "type": "array",
+      "description": "Best first. Coach awards (Bear Bryant COTY, Broyles) rank coaches: player_key 0, empty position and class_year.",
+      "items": {
+       "$ref": "#/components/schemas/AwardCandidate"
+      }
+     }
+    }
+   },
+   "AwardWatchesResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/AwardWatch"
+      }
+     }
+    }
+   },
+   "AwardsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "season",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "season": {
+      "type": "integer",
+      "description": "The season (calendar year) the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Award"
+      }
+     }
+    }
+   },
+   "ClassCommits": {
+    "type": "object",
+    "required": [
+     "five_star",
+     "four_star",
+     "three_star",
+     "two_star",
+     "one_star",
+     "total"
+    ],
+    "properties": {
+     "five_star": {
+      "type": "integer"
+     },
+     "four_star": {
+      "type": "integer"
+     },
+     "three_star": {
+      "type": "integer"
+     },
+     "two_star": {
+      "type": "integer"
+     },
+     "one_star": {
+      "type": "integer"
+     },
+     "total": {
+      "type": "integer"
+     }
+    }
+   },
+   "DraftPicks": {
+    "type": "object",
+    "required": [
+     "round1",
+     "round2",
+     "round3",
+     "round4_7"
+    ],
+    "properties": {
+     "round1": {
+      "type": "integer"
+     },
+     "round2": {
+      "type": "integer"
+     },
+     "round3": {
+      "type": "integer"
+     },
+     "round4_7": {
+      "type": "integer"
+     }
+    }
+   },
+   "Error": {
+    "type": "object",
+    "required": [
+     "error"
+    ],
+    "properties": {
+     "error": {
+      "$ref": "#/components/schemas/ErrorDetail"
+     }
+    }
+   },
+   "ErrorDetail": {
+    "type": "object",
+    "required": [
+     "code",
+     "message"
+    ],
+    "properties": {
+     "code": {
+      "type": "string"
+     },
+     "message": {
+      "type": "string"
+     }
+    }
+   },
+   "Game": {
+    "type": "object",
+    "required": [
+     "key",
+     "season",
+     "week",
+     "displayed_week",
+     "date",
+     "matchup",
+     "result",
+     "played",
+     "home",
+     "away",
+     "kind",
+     "has_box_score",
+     "updated_at"
+    ],
+    "properties": {
+     "key": {
+      "type": "integer"
+     },
+     "season": {
+      "type": "integer"
+     },
+     "week": {
+      "type": "integer"
+     },
+     "displayed_week": {
+      "type": "string"
+     },
+     "bowl_name": {
+      "type": "string"
+     },
+     "date": {
+      "type": "string"
+     },
+     "matchup": {
+      "type": "string"
+     },
+     "result": {
+      "type": "string"
+     },
+     "played": {
+      "type": "boolean"
+     },
+     "home": {
+      "$ref": "#/components/schemas/GameSide"
+     },
+     "away": {
+      "$ref": "#/components/schemas/GameSide"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "user_vs_user",
+       "user_vs_cpu",
+       "cpu_vs_cpu"
+      ]
+     },
+     "has_box_score": {
+      "type": "boolean",
+      "description": "A CPU-vs-CPU game's box score counts only on League Pro"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "box_score": {
+      "type": "object",
+      "description": "Only on /games/{key}"
+     }
+    }
+   },
+   "GameResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "season",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "season": {
+      "type": "integer",
+      "description": "The season (calendar year) the data is from"
+     },
+     "data": {
+      "$ref": "#/components/schemas/Game"
+     }
+    }
+   },
+   "GameSide": {
+    "type": "object",
+    "required": [
+     "team",
+     "team_key",
+     "score",
+     "user_id"
+    ],
+    "properties": {
+     "team": {
+      "type": "string"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "score": {
+      "type": "integer"
+     },
+     "user_id": {
+      "type": "integer",
+      "description": "-1 for CPU"
+     },
+     "user_name": {
+      "type": "string"
+     },
+     "rank_at_game": {
+      "type": "integer",
+      "description": "Top 25 rank when the game was first seen played; 0/absent if unranked"
+     }
+    }
+   },
+   "GradeRanking": {
+    "type": "object",
+    "required": [
+     "grade",
+     "changes",
+     "rows"
+    ],
+    "properties": {
+     "grade": {
+      "type": "string"
+     },
+     "changes": {
+      "type": "string",
+      "description": "How often the grade moves: `Weekly`, `Yearly`, `By Player`, `Static`"
+     },
+     "rows": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/GradeRow"
+      },
+      "description": "Best first"
+     }
+    }
+   },
+   "GradeRow": {
+    "type": "object",
+    "required": [
+     "rank",
+     "name",
+     "logo_id",
+     "letter",
+     "user_controlled"
+    ],
+    "properties": {
+     "rank": {
+      "type": "integer"
+     },
+     "team_key": {
+      "type": "integer",
+      "description": "Absent for conferences"
+     },
+     "name": {
+      "type": "string"
+     },
+     "logo_id": {
+      "type": "integer"
+     },
+     "letter": {
+      "type": "string",
+      "description": "`A+` through `F`, or `Incomplete`"
+     },
+     "rating": {
+      "type": "integer",
+      "description": "Conference Prestige only"
+     },
+     "user_controlled": {
+      "type": "boolean"
+     }
+    }
+   },
+   "HeismanRank": {
+    "type": "object",
+    "required": [
+     "rank",
+     "player_key",
+     "name",
+     "position",
+     "class_year",
+     "team_key",
+     "team_name",
+     "team_rank",
+     "last_game",
+     "stat_line",
+     "new",
+     "movement",
+     "user_team"
+    ],
+    "properties": {
+     "rank": {
+      "type": "integer"
+     },
+     "player_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "class_year": {
+      "type": "string",
+      "description": "`FR`, `SO`, `JR`, `SR`"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "team_name": {
+      "type": "string"
+     },
+     "team_rank": {
+      "type": "integer",
+      "description": "Poll rank; 0 outside the Top 25"
+     },
+     "last_game": {
+      "type": "string"
+     },
+     "stat_line": {
+      "type": "string"
+     },
+     "new": {
+      "type": "boolean",
+      "description": "New to the watch this week"
+     },
+     "movement": {
+      "type": "integer",
+      "description": "Places moved since last week; 0 when new"
+     },
+     "user_team": {
+      "type": "boolean"
+     }
+    }
+   },
+   "HeismanWatchResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/HeismanRank"
+      }
+     }
+    }
+   },
+   "HistoryEntry": {
+    "type": "object",
+    "required": [
+     "kind",
+     "title",
+     "season",
+     "conference",
+     "team"
+    ],
+    "properties": {
+     "kind": {
+      "type": "string",
+      "enum": [
+       "national_championship",
+       "conference_championship",
+       "award"
+      ]
+     },
+     "title": {
+      "type": "string",
+      "description": "e.g. `National Championships`, `Heisman Trophy`"
+     },
+     "season": {
+      "type": "integer"
+     },
+     "conference": {
+      "type": "string",
+      "description": "The game's conference, or the award winner's"
+     },
+     "name": {
+      "type": "string",
+      "description": "Awards: the winner (a player, or a coach for coaching awards)"
+     },
+     "position": {
+      "type": "string",
+      "description": "Awards: the winner's position; `HC`, `OC` or `DC` for coaching awards"
+     },
+     "team": {
+      "$ref": "#/components/schemas/HistoryTeam",
+      "description": "The award winner's team, or the champion"
+     },
+     "opponent": {
+      "$ref": "#/components/schemas/HistoryTeam",
+      "description": "Championships: the loser"
+     },
+     "coach": {
+      "type": "string",
+      "description": "Championships: the champion's coach"
+     },
+     "result": {
+      "type": "string",
+      "description": "Championships: e.g. `45-41`"
+     }
+    }
+   },
+   "HistoryTeam": {
+    "type": "object",
+    "required": [
+     "name",
+     "team_key"
+    ],
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "team_key": {
+      "type": "integer",
+      "description": "0 when not matched to a team in the standings"
+     },
+     "record": {
+      "type": "string"
+     },
+     "rank": {
+      "type": "integer",
+      "description": "Poll rank; omitted outside the Top 25"
+     },
+     "score": {
+      "type": "integer",
+      "description": "Championships only"
+     },
+     "user": {
+      "type": "string",
+      "description": "The team's user; omitted for CPU"
+     }
+    }
+   },
+   "League": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "name",
+     "season_text",
+     "calendar_year",
+     "status",
+     "last_sync_at",
+     "last_sync_status",
+     "current_period",
+     "seasons"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "season_text": {
+      "type": "string"
+     },
+     "calendar_year": {
+      "type": "integer"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "active",
+       "needs_reauth",
+       "needs_sync_account"
+      ]
+     },
+     "last_sync_at": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "format": "date-time"
+     },
+     "last_sync_status": {
+      "type": "string"
+     },
+     "current_period": {
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/Period"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "seasons": {
+      "type": "array",
+      "items": {
+       "type": "integer"
+      }
+     }
+    }
+   },
+   "LeagueHistoryResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/HistoryEntry"
+      }
+     }
+    }
+   },
+   "LeagueResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "data": {
+      "$ref": "#/components/schemas/League"
+     }
+    }
+   },
+   "Member": {
+    "type": "object",
+    "required": [
+     "user_id",
+     "user_name",
+     "team_key",
+     "team_name",
+     "role",
+     "online",
+     "ready_to_advance",
+     "game_result",
+     "opponent",
+     "recruiting_hours",
+     "auto_pilot",
+     "captured_at"
+    ],
+    "properties": {
+     "user_id": {
+      "type": "integer"
+     },
+     "user_name": {
+      "type": "string"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "team_name": {
+      "type": "string"
+     },
+     "role": {
+      "type": "string"
+     },
+     "online": {
+      "type": "boolean"
+     },
+     "ready_to_advance": {
+      "type": "boolean"
+     },
+     "game_result": {
+      "type": "string"
+     },
+     "opponent": {
+      "type": "string"
+     },
+     "recruiting_hours": {
+      "type": "integer"
+     },
+     "auto_pilot": {
+      "type": "string"
+     },
+     "captured_at": {
+      "type": "string",
+      "format": "date-time"
+     }
+    }
+   },
+   "MembersResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Member"
+      }
+     }
+    }
+   },
+   "NILSpend": {
+    "type": "object",
+    "required": [
+     "qb",
+     "rb",
+     "wr",
+     "te",
+     "ol",
+     "dl",
+     "lb",
+     "db",
+     "kp",
+     "total"
+    ],
+    "properties": {
+     "qb": {
+      "type": "integer"
+     },
+     "rb": {
+      "type": "integer"
+     },
+     "wr": {
+      "type": "integer"
+     },
+     "te": {
+      "type": "integer"
+     },
+     "ol": {
+      "type": "integer"
+     },
+     "dl": {
+      "type": "integer"
+     },
+     "lb": {
+      "type": "integer"
+     },
+     "db": {
+      "type": "integer"
+     },
+     "kp": {
+      "type": "integer"
+     },
+     "total": {
+      "type": "integer"
+     }
+    }
+   },
+   "Period": {
+    "type": "object",
+    "required": [
+     "id",
+     "season",
+     "season_text",
+     "first_seen_at",
+     "last_seen_at"
+    ],
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "season": {
+      "type": "integer"
+     },
+     "season_text": {
+      "type": "string",
+      "examples": [
+       "2027 Wk 5"
+      ]
+     },
+     "first_seen_at": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "last_seen_at": {
+      "type": "string",
+      "format": "date-time"
+     }
+    }
+   },
+   "PeriodsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Period"
+      }
+     }
+    }
+   },
+   "PlayerSkills": {
+    "type": "object",
+    "required": [
+     "player_key",
+     "team_key",
+     "name",
+     "position",
+     "history"
+    ],
+    "properties": {
+     "player_key": {
+      "type": "integer"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "history": {
+      "type": "array",
+      "description": "One snapshot per period the roster was read in, oldest first",
+      "items": {
+       "$ref": "#/components/schemas/SkillSnapshot"
+      }
+     }
+    }
+   },
+   "PlayerStat": {
+    "type": "object",
+    "required": [
+     "player_key",
+     "team_key",
+     "name",
+     "first_name",
+     "last_name",
+     "position",
+     "jersey",
+     "overall",
+     "stats"
+    ],
+    "properties": {
+     "player_key": {
+      "type": "integer"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "first_name": {
+      "type": "string"
+     },
+     "last_name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "jersey": {
+      "type": "integer"
+     },
+     "overall": {
+      "type": "integer"
+     },
+     "stats": {
+      "type": "object",
+      "additionalProperties": {
+       "type": "number"
+      }
+     }
+    }
+   },
+   "PlayerStatsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/PlayerStat"
+      }
+     }
+    }
+   },
+   "PlayingStyleGradesResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/PlayingStyleRanking"
+      }
+     }
+    }
+   },
+   "PlayingStyleRanking": {
+    "type": "object",
+    "required": [
+     "style",
+     "stat",
+     "archetypes",
+     "rows"
+    ],
+    "properties": {
+     "style": {
+      "type": "integer",
+      "description": "Ranking id within the period"
+     },
+     "stat": {
+      "type": "string",
+      "description": "e.g. `Receptions`, `Offensive Pass Yards Per Game`"
+     },
+     "archetypes": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "e.g. `WR - Speedster`"
+     },
+     "rows": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/PlayingStyleRow"
+      },
+      "description": "Best first"
+     }
+    }
+   },
+   "PlayingStyleRow": {
+    "type": "object",
+    "required": [
+     "rank",
+     "team_key",
+     "name",
+     "logo_id",
+     "letter",
+     "stat_value",
+     "user_controlled"
+    ],
+    "properties": {
+     "rank": {
+      "type": "integer"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "logo_id": {
+      "type": "integer"
+     },
+     "letter": {
+      "type": "string",
+      "description": "`A+` through `F`, or `Incomplete`"
+     },
+     "stat_value": {
+      "type": "integer"
+     },
+     "user_controlled": {
+      "type": "boolean"
+     }
+    }
+   },
+   "ProPotentialGradesResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/ProPotentialRanking"
+      }
+     }
+    }
+   },
+   "ProPotentialRanking": {
+    "type": "object",
+    "required": [
+     "position_group",
+     "rows"
+    ],
+    "properties": {
+     "position_group": {
+      "type": "string"
+     },
+     "rows": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/ProPotentialRow"
+      },
+      "description": "Best first"
+     }
+    }
+   },
+   "ProPotentialRow": {
+    "type": "object",
+    "required": [
+     "rank",
+     "team_key",
+     "name",
+     "logo_id",
+     "letter",
+     "picks",
+     "user_controlled"
+    ],
+    "properties": {
+     "rank": {
+      "type": "integer"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "logo_id": {
+      "type": "integer"
+     },
+     "letter": {
+      "type": "string",
+      "description": "`A+` through `F`, or `Incomplete`"
+     },
+     "picks": {
+      "$ref": "#/components/schemas/DraftPicks"
+     },
+     "user_controlled": {
+      "type": "boolean"
+     }
+    }
+   },
+   "Recruit": {
+    "type": "object",
+    "required": [
+     "prospect_key",
+     "name",
+     "first_name",
+     "last_name",
+     "position",
+     "archetype",
+     "stars",
+     "national_rank",
+     "position_rank",
+     "state_rank",
+     "hometown",
+     "state",
+     "height",
+     "weight",
+     "class",
+     "stage",
+     "committed",
+     "signed",
+     "school",
+     "dev_trait",
+     "desired_nil",
+     "dealbreaker",
+     "top_schools",
+     "transfer",
+     "transfer_from"
+    ],
+    "properties": {
+     "prospect_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "first_name": {
+      "type": "string"
+     },
+     "last_name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "archetype": {
+      "type": "string"
+     },
+     "stars": {
+      "type": "integer"
+     },
+     "national_rank": {
+      "type": "integer",
+      "description": "National rank; for transfers, the transfer portal's own rank"
+     },
+     "position_rank": {
+      "type": "integer"
+     },
+     "state_rank": {
+      "type": "integer"
+     },
+     "hometown": {
+      "type": "string"
+     },
+     "state": {
+      "type": "string"
+     },
+     "height": {
+      "type": "integer",
+      "description": "Inches"
+     },
+     "weight": {
+      "type": "integer"
+     },
+     "class": {
+      "type": "string",
+      "description": "`HS`, `JC (SO)`, `JC (JR)`, ..., or for transfers `TR (FR)`, `TR (SO)`, `TR (JR)`, `TR (SR)`"
+     },
+     "stage": {
+      "type": "string",
+      "description": "`Open`, `Top 5`, `Top 3`, `Battle`, `Verbal`, `Committed`, `Signed`"
+     },
+     "committed": {
+      "type": "boolean",
+      "description": "Committed or signed"
+     },
+     "signed": {
+      "type": "boolean"
+     },
+     "school": {
+      "description": "Committed or signed school; null when neither",
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/RecruitSchool"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "dev_trait": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "description": "`Normal`, `Impact`, `Star`, `Elite` once signed; null before"
+     },
+     "desired_nil": {
+      "type": "integer"
+     },
+     "dealbreaker": {
+      "type": "string",
+      "description": "Recruiting motivation that is a dealbreaker; '' when none"
+     },
+     "top_schools": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/TopSchool"
+      }
+     },
+     "transfer": {
+      "type": "boolean",
+      "description": "A transfer portal player"
+     },
+     "transfer_from": {
+      "description": "The school a transfer portal player is leaving; null for high school and JUCO recruits",
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/TransferFrom"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    }
+   },
+   "RecruitCommitsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "season",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "season": {
+      "type": "integer",
+      "description": "The season (calendar year) the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/RecruitEvent"
+      }
+     }
+    }
+   },
+   "RecruitEvent": {
+    "type": "object",
+    "required": [
+     "kind",
+     "period_id",
+     "season_text",
+     "prospect_key",
+     "name",
+     "position",
+     "stars",
+     "national_rank",
+     "school",
+     "transfer"
+    ],
+    "properties": {
+     "kind": {
+      "type": "string",
+      "enum": [
+       "commit",
+       "decommit",
+       "sign"
+      ]
+     },
+     "period_id": {
+      "type": "integer"
+     },
+     "season_text": {
+      "type": "string"
+     },
+     "prospect_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "stars": {
+      "type": "integer"
+     },
+     "national_rank": {
+      "type": "integer"
+     },
+     "school": {
+      "description": "School committed or signed to; null for a decommit",
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/RecruitSchool"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "previous_school": {
+      "type": "string",
+      "description": "Decommit: the school left. Commit: the previous school when it was a flip"
+     },
+     "transfer": {
+      "type": "boolean",
+      "description": "A transfer portal player"
+     },
+     "transfer_from": {
+      "type": "string",
+      "description": "Transfers: the school they left (omitted for recruits)"
+     }
+    }
+   },
+   "RecruitSchool": {
+    "type": "object",
+    "required": [
+     "team_id",
+     "name"
+    ],
+    "properties": {
+     "team_id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     }
+    }
+   },
+   "RecruitingClass": {
+    "type": "object",
+    "required": [
+     "rank",
+     "conference_rank",
+     "team_key",
+     "name",
+     "nickname",
+     "conference",
+     "class_year",
+     "points",
+     "commits",
+     "nil_committed",
+     "prestige_stars",
+     "user_team"
+    ],
+    "properties": {
+     "rank": {
+      "type": "integer",
+      "description": "National class rank"
+     },
+     "conference_rank": {
+      "type": "integer"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "nickname": {
+      "type": "string"
+     },
+     "conference": {
+      "type": "string"
+     },
+     "class_year": {
+      "type": "integer",
+      "description": "Season the class is recruited in"
+     },
+     "points": {
+      "type": "number",
+      "description": "Recruiting class points"
+     },
+     "commits": {
+      "$ref": "#/components/schemas/ClassCommits"
+     },
+     "nil_committed": {
+      "type": "integer",
+      "description": "Total NIL committed, in the game's NIL units"
+     },
+     "prestige_stars": {
+      "type": "number"
+     },
+     "user_team": {
+      "type": "boolean"
+     }
+    }
+   },
+   "RecruitingClassesResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/RecruitingClass"
+      }
+     }
+    }
+   },
+   "RecruitsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Recruit"
+      }
+     }
+    }
+   },
+   "RosterPlayer": {
+    "type": "object",
+    "required": [
+     "player_key",
+     "team_key",
+     "name",
+     "first_name",
+     "last_name",
+     "jersey",
+     "position",
+     "archetype",
+     "overall",
+     "class_year",
+     "redshirt",
+     "redshirted",
+     "dev_trait",
+     "height",
+     "weight",
+     "hometown",
+     "nil_compensation",
+     "ratings",
+     "abilities",
+     "skill_points",
+     "skill_groups",
+     "period_id"
+    ],
+    "properties": {
+     "player_key": {
+      "type": "integer"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "first_name": {
+      "type": "string"
+     },
+     "last_name": {
+      "type": "string"
+     },
+     "jersey": {
+      "type": "integer"
+     },
+     "position": {
+      "type": "string"
+     },
+     "archetype": {
+      "type": "string"
+     },
+     "overall": {
+      "type": "integer"
+     },
+     "class_year": {
+      "type": "string",
+      "enum": [
+       "FR",
+       "SO",
+       "JR",
+       "SR"
+      ]
+     },
+     "redshirt": {
+      "type": "string",
+      "description": "`NE`, `NI`, `CU` (redshirting this season) or `PR` (redshirted before)"
+     },
+     "redshirted": {
+      "type": "boolean",
+      "description": "`CU` or `PR`"
+     },
+     "dev_trait": {
+      "type": "string",
+      "enum": [
+       "Normal",
+       "Impact",
+       "Star",
+       "Elite"
+      ]
+     },
+     "height": {
+      "type": "integer",
+      "description": "Inches"
+     },
+     "weight": {
+      "type": "integer",
+      "description": "Pounds"
+     },
+     "hometown": {
+      "type": "string"
+     },
+     "nil_compensation": {
+      "type": "integer",
+      "description": "In the game's NIL units"
+     },
+     "ratings": {
+      "type": "object",
+      "description": "Current ratings by name: `speed`, `throwPower`, `zoneCoverage`, ...",
+      "additionalProperties": {
+       "type": "integer"
+      }
+     },
+     "abilities": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Ability"
+      }
+     },
+     "skill_points": {
+      "type": "integer",
+      "description": "Unspent skill points"
+     },
+     "skill_groups": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/SkillGroup"
+      }
+     },
+     "period_id": {
+      "type": "integer",
+      "description": "The period the roster was read in"
+     }
+    }
+   },
+   "RosterSkillsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "season",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "season": {
+      "type": "integer",
+      "description": "The season (calendar year) the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/PlayerSkills"
+      }
+     }
+    }
+   },
+   "RostersResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "season",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "season": {
+      "type": "integer",
+      "description": "The season (calendar year) the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/RosterPlayer"
+      }
+     }
+    }
+   },
+   "ScheduleResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "season",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "season": {
+      "type": "integer",
+      "description": "The season (calendar year) the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Game"
+      }
+     }
+    }
+   },
+   "SchoolGradesResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/GradeRanking"
+      }
+     }
+    }
+   },
+   "SeasonsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "type": "integer"
+      }
+     }
+    }
+   },
+   "SkillGroup": {
+    "type": "object",
+    "description": "One of a player's skill groups. Tiers 1..`level` are filled, the next `buyable` can be bought with skill points, and the last `locked` are above the player's potential `cap`. A level above the cap came from the player's ratings; nothing can be bought then.",
+    "required": [
+     "name",
+     "level",
+     "cap",
+     "max",
+     "overall",
+     "buyable",
+     "locked"
+    ],
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "level": {
+      "type": "integer"
+     },
+     "cap": {
+      "type": "integer",
+      "description": "Potential: the highest tier that can be bought"
+     },
+     "max": {
+      "type": "integer",
+      "description": "Tier count (20)"
+     },
+     "overall": {
+      "type": "integer",
+      "description": "The group's rating"
+     },
+     "buyable": {
+      "type": "integer",
+      "description": "Tiers still buyable: `cap - level`, at least 0"
+     },
+     "locked": {
+      "type": "integer",
+      "description": "Tiers above the cap: `max - max(cap, level)`"
+     }
+    }
+   },
+   "SkillSnapshot": {
+    "type": "object",
+    "required": [
+     "period_id",
+     "season_text",
+     "overall",
+     "skill_points",
+     "skill_groups",
+     "points_change"
+    ],
+    "properties": {
+     "period_id": {
+      "type": "integer"
+     },
+     "season_text": {
+      "type": "string"
+     },
+     "overall": {
+      "type": "integer"
+     },
+     "skill_points": {
+      "type": "integer",
+      "description": "Unspent skill points"
+     },
+     "skill_groups": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/SkillGroup"
+      }
+     },
+     "levels_gained": {
+      "type": "object",
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "description": "Level change by group since the previous snapshot, where it changed. Levels bought with skill points (the game also auto-progresses players)"
+     },
+     "points_change": {
+      "type": "integer",
+      "description": "Skill points since the previous snapshot: down when spent, up when earned"
+     }
+    }
+   },
+   "Standing": {
+    "type": "object",
+    "required": [
+     "team_key",
+     "name",
+     "nickname",
+     "conference",
+     "overall",
+     "offense",
+     "defense",
+     "prestige_stars",
+     "rank",
+     "record",
+     "conference_record",
+     "wins",
+     "losses",
+     "points_for",
+     "points_against",
+     "user_controlled"
+    ],
+    "properties": {
+     "team_key": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "nickname": {
+      "type": "string"
+     },
+     "conference": {
+      "type": "string"
+     },
+     "overall": {
+      "type": "integer"
+     },
+     "offense": {
+      "type": "integer"
+     },
+     "defense": {
+      "type": "integer"
+     },
+     "prestige_stars": {
+      "type": "number"
+     },
+     "rank": {
+      "type": "integer"
+     },
+     "record": {
+      "type": "string"
+     },
+     "conference_record": {
+      "type": "string"
+     },
+     "wins": {
+      "type": "integer"
+     },
+     "losses": {
+      "type": "integer"
+     },
+     "points_for": {
+      "type": "integer"
+     },
+     "points_against": {
+      "type": "integer"
+     },
+     "user_controlled": {
+      "type": "boolean"
+     }
+    }
+   },
+   "StandingsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Standing"
+      }
+     }
+    }
+   },
+   "SyncRun": {
+    "type": "object",
+    "required": [
+     "started_at",
+     "kind",
+     "trigger",
+     "status"
+    ],
+    "properties": {
+     "started_at": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "finished_at": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "light",
+       "weekly"
+      ]
+     },
+     "trigger": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string"
+     },
+     "error": {
+      "type": "string",
+      "description": "Why a failed or partial run failed"
+     }
+    }
+   },
+   "SyncRunsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/SyncRun"
+      }
+     }
+    }
+   },
+   "TeamGame": {
+    "type": "object",
+    "required": [
+     "game_key",
+     "season",
+     "week",
+     "displayed_week",
+     "date",
+     "location",
+     "team",
+     "team_key",
+     "opponent",
+     "opponent_key",
+     "status",
+     "matchup_type"
+    ],
+    "properties": {
+     "game_key": {
+      "type": "integer"
+     },
+     "season": {
+      "type": "integer"
+     },
+     "week": {
+      "type": "integer"
+     },
+     "displayed_week": {
+      "type": "string"
+     },
+     "bowl_name": {
+      "type": "string"
+     },
+     "date": {
+      "type": "string"
+     },
+     "location": {
+      "type": "string",
+      "enum": [
+       "home",
+       "away"
+      ]
+     },
+     "team": {
+      "type": "string"
+     },
+     "team_key": {
+      "type": "integer"
+     },
+     "opponent": {
+      "type": "string"
+     },
+     "opponent_key": {
+      "type": "integer"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "upcoming",
+       "completed"
+      ]
+     },
+     "outcome": {
+      "type": "string",
+      "enum": [
+       "W",
+       "L",
+       "T"
+      ]
+     },
+     "team_score": {
+      "type": "integer"
+     },
+     "opponent_score": {
+      "type": "integer"
+     },
+     "margin": {
+      "type": "integer"
+     },
+     "user": {
+      "type": "string"
+     },
+     "opponent_user": {
+      "type": "string"
+     },
+     "matchup_type": {
+      "type": "string"
+     },
+     "opponent_rank_at_game": {
+      "type": "integer"
+     }
+    }
+   },
+   "TeamScheduleResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "season",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "season": {
+      "type": "integer",
+      "description": "The season (calendar year) the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/TeamGame"
+      }
+     }
+    }
+   },
+   "TeamStat": {
+    "type": "object",
+    "required": [
+     "team_key",
+     "team_id",
+     "name",
+     "nickname",
+     "conference",
+     "record",
+     "rank",
+     "user_controlled",
+     "games_played",
+     "stats",
+     "nil_spend"
+    ],
+    "properties": {
+     "team_key": {
+      "type": "integer"
+     },
+     "team_id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "nickname": {
+      "type": "string"
+     },
+     "conference": {
+      "type": "string"
+     },
+     "record": {
+      "type": "string"
+     },
+     "rank": {
+      "type": "integer"
+     },
+     "user_controlled": {
+      "type": "boolean"
+     },
+     "games_played": {
+      "type": "integer"
+     },
+     "stats": {
+      "type": "object",
+      "additionalProperties": {
+       "type": "number"
+      },
+      "description": "Team Stats screen columns by model name: OffPoints, OffPointsPerGame, OffTotalYards, OffYardsPerGame, OffYardsPerPlay, OffPassYards, OffPassTD, OffRushYards, OffRushTD, OffFirstdown, FirstDownsPerGame, OffSacksAllowed, DefPointsAllowed, DefPointsPerGame, DefTotalYards, DefYardsPerGame, DefPassYards, DefRushYards, DefSacks, DefInterceptions, DefFumbles, RedZone*, ThirdDown*, FourthDown*, TwoPoint*, Turnover*, NumPenalties, PenaltiesYards, …"
+     },
+     "nil_spend": {
+      "$ref": "#/components/schemas/NILSpend"
+     }
+    }
+   },
+   "TeamStatsResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "period",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "period": {
+      "$ref": "#/components/schemas/Period",
+      "description": "The snapshot period the data is from"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/TeamStat"
+      }
+     }
+    }
+   },
+   "TopSchool": {
+    "type": "object",
+    "properties": {
+     "team_id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "influence": {
+      "type": "integer"
+     },
+     "influence_this_week": {
+      "type": "integer"
+     }
+    }
+   },
+   "TransferFrom": {
+    "type": "object",
+    "required": [
+     "name",
+     "rank",
+     "user_team"
+    ],
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "rank": {
+      "type": [
+       "integer",
+       "null"
+      ],
+      "description": "Top 25 rank; null when unranked"
+     },
+     "user_team": {
+      "type": "boolean",
+      "description": "A user coaches it"
+     }
+    }
+   }
+  }
+ }
+}

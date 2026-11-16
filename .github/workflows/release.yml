@@ -1,0 +1,48 @@
+# Publishes npm and PyPI on a v* tag. The Go module is versioned by pushing a
+# matching go/v* tag; the proxy picks it up on first request.
+name: Release
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag matches package versions
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          grep -q "\"version\": \"$v\"" typescript/package.json
+          grep -q "^version = \"$v\"" python/pyproject.toml
+          grep -q "const Version = \"$v\"" go/dynasty/client.go
+
+  # npm trusted publishing: no token; npm exchanges the workflow's OIDC
+  # identity and attaches provenance automatically.
+  npm:
+    needs: check-version
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions: { contents: read, id-token: write }
+    defaults: { run: { working-directory: typescript } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, registry-url: "https://registry.npmjs.org" }
+      - run: npm ci
+      - run: npm test
+      - run: npm publish --access public
+
+  pypi:
+    needs: check-version
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions: { contents: read, id-token: write }
+    defaults: { run: { working-directory: python } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run pytest
+      - run: uv build
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with: { packages-dir: python/dist }
