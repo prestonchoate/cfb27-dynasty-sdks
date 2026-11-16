@@ -18,7 +18,9 @@ jobs:
           grep -q "const Version = \"$v\"" go/dynasty/client.go
 
   # npm trusted publishing: no token; npm exchanges the workflow's OIDC
-  # identity and attaches provenance automatically.
+  # identity and attaches provenance automatically. The trusted publisher is
+  # allowed to stage only, so a maintainer approves each release on npmjs.com
+  # (or with `npm stage approve <id>`) with 2FA.
   npm:
     needs: check-version
     runs-on: ubuntu-latest
@@ -31,13 +33,13 @@ jobs:
         with: { node-version: 24, registry-url: "https://registry.npmjs.org" }
       - run: npm ci
       - run: npm test
-      - name: Publish unless this version is already on npm
+      - name: Stage unless this version is already on npm
         run: |
           v="$(node -p 'require("./package.json").version')"
           if npm view "cfb27-dynasty@$v" version >/dev/null 2>&1; then
             echo "cfb27-dynasty@$v already published; skipping"
           else
-            npm publish --access public
+            npm stage publish --access public
           fi
 
   pypi:
