@@ -63,8 +63,11 @@ DYNASTY_API_KEY=cfbk_… go -C go test -run TestLive ./...
 
 ## Releasing
 
-Bump the version in all three packages (`scripts/bump-version.sh 0.2.0`), then push a
-tag: `v0.2.0` publishes npm and PyPI, and `go/v0.2.0` versions the Go module.
+Bump the version in all three packages (`scripts/bump-version.sh 0.2.0`), commit, then
+push two tags: `v0.2.0` publishes to PyPI and stages the npm release, and `go/v0.2.0`
+versions the Go module. Both registries use trusted publishing (no stored tokens). The npm
+publisher may only stage, so a maintainer approves each release on npmjs.com or with
+`npm stage approve <id>` (the id is in the release job's log).
 
 ## License
 
