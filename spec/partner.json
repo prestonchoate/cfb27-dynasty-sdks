@@ -3,7 +3,7 @@
  "info": {
   "title": "Dynasty API partner API",
   "version": "1.0.0",
-  "description": "Manage the dynasties your shared EA accounts are in: list and join invites, make claim links for commissioners (or, as a billed partner, turn syncing on yourself and report your payments), ask for data access and follow events. Read a dynasty's data from /v1 with the same key and a Dynasty-Id header (see /v1/docs). Calls that reach EA sign the account in to the game servers, which ends any session it has open in the game. EA calls on an invite (choices, join, finish-join, ?refresh=true) wait up to 45 s for the account (it may be syncing a dynasty) and then up to 90 s for EA: allow at least 150 s before timing out. A join that has reached EA finishes even if you hang up; check GET /dynasties before trying again."
+  "description": "Manage the dynasties your shared EA accounts are in: list and join invites, make claim links for commissioners (or, as a billed partner, turn syncing on yourself and report your payments), ask for data access and follow events. Read a dynasty's data from /v1 with the same key and a Dynasty-Id header (see /v1/docs). Calls that reach EA sign the account in to the game servers, which ends any session it has open in the game. EA calls on an invite (choices, join, finish-join, ?refresh=true) wait up to 45 s for the account (it may be syncing a dynasty) and then up to 90 s for EA: allow at least 150 s before timing out. A join that has reached EA finishes even if you hang up; check GET /dynasties before trying again. Typed SDKs for TypeScript, Python and Go: https://dynasty.prestonchoate.dev/developers"
  },
  "servers": [
   {

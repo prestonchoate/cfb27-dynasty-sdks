@@ -3,7 +3,7 @@
  "info": {
   "title": "Dynasty API",
   "version": "1.1.0",
-  "description": "Read-only cached data for one CFB 27 online dynasty. The dynasty comes from the API key, or for a partner key (cfbp_…) from the Dynasty-Id header. Data is as fresh as the last sync (see /league and /sync). Every authenticated response has a weak ETag built from the league's data version; send it back in If-None-Match to get 304 when nothing changed. Limit: 120 requests a minute per key (burst 60)."
+  "description": "Read-only cached data for one CFB 27 online dynasty. The dynasty comes from the API key, or for a partner key (cfbp_…) from the Dynasty-Id header. Data is as fresh as the last sync (see /league and /sync). Every authenticated response has a weak ETag built from the league's data version; send it back in If-None-Match to get 304 when nothing changed. Limit: 120 requests a minute per key (burst 60). Typed SDKs for TypeScript, Python and Go: https://dynasty.prestonchoate.dev/developers"
  },
  "servers": [
   {
