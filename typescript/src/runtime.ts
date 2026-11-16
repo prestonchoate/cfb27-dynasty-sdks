@@ -2,7 +2,7 @@
 // retries, timeouts and typed errors.
 
 export const DEFAULT_BASE_URL = "https://dynasty.prestonchoate.dev";
-export const VERSION = "0.1.0";
+export const VERSION = "0.1.1";
 
 export interface ClientOptions {
   /** A dynasty key (`cfbk_…`) or partner key (`cfbp_…`). */

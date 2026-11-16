@@ -22,7 +22,7 @@ import (
 const DefaultBaseURL = "https://dynasty.prestonchoate.dev"
 
 // Version is this SDK's version, sent in the User-Agent.
-const Version = "0.1.0"
+const Version = "0.1.1"
 
 // Client reads one dynasty's data from /v1. It is safe for concurrent use.
 type Client struct {
