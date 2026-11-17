@@ -1,6 +1,6 @@
 [project]
 name = "cfb27-dynasty"
-version = "0.1.1"
+version = "0.2.0"
 description = "Typed client for the CFB 27 Dynasty API"
 readme = "README.md"
 license = "MIT"
