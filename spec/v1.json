@@ -1181,6 +1181,109 @@
     }
    }
   },
+  "/careers": {
+   "get": {
+    "operationId": "listCareers",
+    "tags": [
+     "Players"
+    ],
+    "summary": "Player careers: each rostered player's season-by-season stats from the in-game player card, read once per completed season (the card only adds a season once it's over; offseason reads catch seniors and draft picks before they leave). By default each player on the newest roster with his latest read; `year` returns one read, players who have since left included. User teams by default; on paid plans CPU teams too with `scope=all` or `team`. `player_key` and `team_key` match /rosters and /player-stats; `stats` uses /player-stats' names (the card has the counting stats and basic rates, not the advanced ones).",
+    "parameters": [
+     {
+      "name": "year",
+      "in": "query",
+      "required": false,
+      "description": "The read covering seasons through this one (`career_year`). Default: each rostered player's latest",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "team",
+      "in": "query",
+      "required": false,
+      "description": "Team key (his team when read). A CPU team's players need a paid plan (without one, only user teams match)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "player",
+      "in": "query",
+      "required": false,
+      "description": "Player key. A CPU team's player needs a paid plan (without one, only user teams match)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "position",
+      "in": "query",
+      "required": false,
+      "description": "Position, e.g. `QB`, `LEDG` (case-insensitive)",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "scope",
+      "in": "query",
+      "required": false,
+      "description": "`user` (default): user teams. `all`: every FBS team, on paid plans (403 `plan_required` otherwise)",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "user",
+        "all"
+       ]
+      }
+     },
+     {
+      "$ref": "#/components/parameters/DynastyId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CareersResponse"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified (If-None-Match matched the data version)"
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "description": "`plan_required`: `scope=all` without a paid plan; or a partner key whose access to that dynasty was not granted or was revoked",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "429": {
+      "$ref": "#/components/responses/RateLimited"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    }
+   }
+  },
   "/sync": {
    "get": {
     "operationId": "listSyncRuns",
@@ -4040,7 +4143,9 @@
       "type": "string",
       "enum": [
        "light",
-       "weekly"
+       "weekly",
+       "grades",
+       "careers"
       ]
      },
      "trigger": {
@@ -4322,6 +4427,123 @@
      "user_team": {
       "type": "boolean",
       "description": "A user coaches it"
+     }
+    }
+   },
+   "CareersResponse": {
+    "type": "object",
+    "required": [
+     "league_id",
+     "data_version",
+     "data"
+    ],
+    "properties": {
+     "league_id": {
+      "type": "integer",
+      "description": "The dynasty's EA league id"
+     },
+     "data_version": {
+      "type": "integer",
+      "description": "Bumped whenever the dynasty's cached data changes; the ETag is built from it"
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/PlayerCareer"
+      }
+     }
+    }
+   },
+   "PlayerCareer": {
+    "type": "object",
+    "required": [
+     "player_key",
+     "team_key",
+     "first_name",
+     "last_name",
+     "position",
+     "jersey",
+     "overall",
+     "career_year",
+     "roster_season",
+     "period_id",
+     "seasons"
+    ],
+    "properties": {
+     "player_key": {
+      "type": "integer"
+     },
+     "team_key": {
+      "type": "integer",
+      "description": "His team when read"
+     },
+     "first_name": {
+      "type": "string"
+     },
+     "last_name": {
+      "type": "string"
+     },
+     "position": {
+      "type": "string"
+     },
+     "jersey": {
+      "type": "integer"
+     },
+     "overall": {
+      "type": "integer"
+     },
+     "career_year": {
+      "type": "integer",
+      "description": "The last completed season the read covers"
+     },
+     "roster_season": {
+      "type": "integer",
+      "description": "The /rosters season he was read from"
+     },
+     "period_id": {
+      "type": "integer",
+      "description": "The period it was read in"
+     },
+     "seasons": {
+      "type": "array",
+      "description": "Oldest first; empty for a player who hasn't finished a season",
+      "items": {
+       "$ref": "#/components/schemas/PlayerCareerSeason"
+      }
+     }
+    }
+   },
+   "PlayerCareerSeason": {
+    "type": "object",
+    "required": [
+     "season",
+     "school",
+     "user_controlled",
+     "games_played",
+     "stats"
+    ],
+    "properties": {
+     "season": {
+      "type": "integer",
+      "description": "Calendar year"
+     },
+     "school": {
+      "type": "string",
+      "description": "The team he played for that season"
+     },
+     "user_controlled": {
+      "type": "boolean",
+      "description": "He was on a user-coached team that season"
+     },
+     "games_played": {
+      "type": "integer"
+     },
+     "stats": {
+      "type": "object",
+      "additionalProperties": {
+       "type": "number"
+      },
+      "description": "By /player-stats' names, e.g. `passYards`, `defenseSacks` (half sacks are decimals)"
      }
     }
    }

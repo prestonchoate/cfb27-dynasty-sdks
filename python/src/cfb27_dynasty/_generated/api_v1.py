@@ -7,8 +7,8 @@ from datetime import datetime  # noqa: F401
 from typing import TYPE_CHECKING, Any
 
 from .._transport import _seg
-from .models_v1 import AllAmericansResponse, AwardWatchesResponse, AwardsResponse, GameResponse, HeismanWatchResponse, LeagueHistoryResponse, LeagueResponse, MembersResponse, PeriodsResponse, PlayerStatsResponse, PlayingStyleGradesResponse, ProPotentialGradesResponse, RecruitCommitsResponse, RecruitingClassesResponse, RecruitsResponse, RosterSkillsResponse, RostersResponse, ScheduleResponse, SchoolGradesResponse, SeasonsResponse, StandingsResponse, SyncRunsResponse, TeamScheduleResponse, TeamStatsResponse
-from .models_v1 import ListLeagueHistoryKind, ListRecruitCommitsKind, ListRecruitCommitsType, ListRecruitingClassesType, ListRecruitsType, ListRostersScope
+from .models_v1 import AllAmericansResponse, AwardWatchesResponse, AwardsResponse, CareersResponse, GameResponse, HeismanWatchResponse, LeagueHistoryResponse, LeagueResponse, MembersResponse, PeriodsResponse, PlayerStatsResponse, PlayingStyleGradesResponse, ProPotentialGradesResponse, RecruitCommitsResponse, RecruitingClassesResponse, RecruitsResponse, RosterSkillsResponse, RostersResponse, ScheduleResponse, SchoolGradesResponse, SeasonsResponse, StandingsResponse, SyncRunsResponse, TeamScheduleResponse, TeamStatsResponse
+from .models_v1 import ListCareersScope, ListLeagueHistoryKind, ListRecruitCommitsKind, ListRecruitCommitsType, ListRecruitingClassesType, ListRecruitsType, ListRostersScope
 
 if TYPE_CHECKING:
     from .._transport import AsyncTransport, SyncTransport
@@ -230,6 +230,22 @@ class DynastyAPI:
         ``GET /v1/rosters/skills``
         """
         return self._request("GET", "/rosters/skills", query={"season": season, "team": team, "player": player}, response=RosterSkillsResponse, timeout=timeout)
+
+    def list_careers(
+        self,
+        *,
+        year: int | None = None,
+        team: int | None = None,
+        player: int | None = None,
+        position: str | None = None,
+        scope: ListCareersScope | None = None,
+        timeout: float | None = None,
+    ) -> CareersResponse:
+        """Player careers: each rostered player's season-by-season stats from the in-game player card, read once per completed season (the card only adds a season once it's over; offseason reads catch seniors and draft picks before they leave). By default each player on the newest roster with his latest read; `year` returns one read, players who have since left included. User teams by default; on paid plans CPU teams too with `scope=all` or `team`. `player_key` and `team_key` match /rosters and /player-stats; `stats` uses /player-stats' names (the card has the counting stats and basic rates, not the advanced ones).
+
+        ``GET /v1/careers``
+        """
+        return self._request("GET", "/careers", query={"year": year, "team": team, "player": player, "position": position, "scope": scope}, response=CareersResponse, timeout=timeout)
 
     def list_sync_runs(
         self,
@@ -555,6 +571,22 @@ class AsyncDynastyAPI:
         ``GET /v1/rosters/skills``
         """
         return await self._request("GET", "/rosters/skills", query={"season": season, "team": team, "player": player}, response=RosterSkillsResponse, timeout=timeout)
+
+    async def list_careers(
+        self,
+        *,
+        year: int | None = None,
+        team: int | None = None,
+        player: int | None = None,
+        position: str | None = None,
+        scope: ListCareersScope | None = None,
+        timeout: float | None = None,
+    ) -> CareersResponse:
+        """Player careers: each rostered player's season-by-season stats from the in-game player card, read once per completed season (the card only adds a season once it's over; offseason reads catch seniors and draft picks before they leave). By default each player on the newest roster with his latest read; `year` returns one read, players who have since left included. User teams by default; on paid plans CPU teams too with `scope=all` or `team`. `player_key` and `team_key` match /rosters and /player-stats; `stats` uses /player-stats' names (the card has the counting stats and basic rates, not the advanced ones).
+
+        ``GET /v1/careers``
+        """
+        return await self._request("GET", "/careers", query={"year": year, "team": team, "player": player, "position": position, "scope": scope}, response=CareersResponse, timeout=timeout)
 
     async def list_sync_runs(
         self,

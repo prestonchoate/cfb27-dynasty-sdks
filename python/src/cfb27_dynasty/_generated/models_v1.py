@@ -26,6 +26,7 @@ __all__ = [
     "ListRecruitCommitsKind",
     "ListRecruitingClassesType",
     "ListRostersScope",
+    "ListCareersScope",
     "ListLeagueHistoryKind",
     "Ability",
     "AllAmericanPlayer",
@@ -36,6 +37,7 @@ __all__ = [
     "AwardWatch",
     "AwardWatchesResponse",
     "AwardsResponse",
+    "CareersResponse",
     "ClassCommits",
     "DraftPicks",
     "ErrorResponse",
@@ -57,6 +59,8 @@ __all__ = [
     "NILSpend",
     "Period",
     "PeriodsResponse",
+    "PlayerCareer",
+    "PlayerCareerSeason",
     "PlayerSkills",
     "PlayerStat",
     "PlayerStatsResponse",
@@ -111,7 +115,7 @@ RosterPlayerClassYear = Literal["FR", "SO", "JR", "SR"] | str
 RosterPlayerDevTrait = Literal["Normal", "Impact", "Star", "Elite"] | str
 """Known values; newer servers may send others."""
 
-SyncRunKind = Literal["light", "weekly"] | str
+SyncRunKind = Literal["light", "weekly", "grades", "careers"] | str
 """Known values; newer servers may send others."""
 
 TeamGameLocation = Literal["home", "away"] | str
@@ -136,6 +140,9 @@ ListRecruitingClassesType = Literal["overall", "recruits", "transfers"] | str
 """Known values; newer servers may send others."""
 
 ListRostersScope = Literal["user", "all"] | str
+"""Known values; newer servers may send others."""
+
+ListCareersScope = Literal["user", "all"] | str
 """Known values; newer servers may send others."""
 
 ListLeagueHistoryKind = Literal["national_championship", "conference_championship", "award"] | str
@@ -240,6 +247,14 @@ class AwardsResponse(Model):
     season: int
     """The season (calendar year) the data is from"""
     data: list[Award]
+
+
+class CareersResponse(Model):
+    league_id: int
+    """The dynasty's EA league id"""
+    data_version: int
+    """Bumped whenever the dynasty's cached data changes; the ETag is built from it"""
+    data: list[PlayerCareer]
 
 
 class ClassCommits(Model):
@@ -473,6 +488,37 @@ class PeriodsResponse(Model):
     data_version: int
     """Bumped whenever the dynasty's cached data changes; the ETag is built from it"""
     data: list[Period]
+
+
+class PlayerCareer(Model):
+    player_key: int
+    team_key: int
+    """His team when read"""
+    first_name: str
+    last_name: str
+    position: str
+    jersey: int
+    overall: int
+    career_year: int
+    """The last completed season the read covers"""
+    roster_season: int
+    """The /rosters season he was read from"""
+    period_id: int
+    """The period it was read in"""
+    seasons: list[PlayerCareerSeason]
+    """Oldest first; empty for a player who hasn't finished a season"""
+
+
+class PlayerCareerSeason(Model):
+    season: int
+    """Calendar year"""
+    school: str
+    """The team he played for that season"""
+    user_controlled: bool
+    """He was on a user-coached team that season"""
+    games_played: int
+    stats: dict[str, float]
+    """By /player-stats' names, e.g. `passYards`, `defenseSacks` (half sacks are decimals)"""
 
 
 class PlayerSkills(Model):
@@ -915,6 +961,7 @@ AwardCandidate.model_rebuild()
 AwardWatch.model_rebuild()
 AwardWatchesResponse.model_rebuild()
 AwardsResponse.model_rebuild()
+CareersResponse.model_rebuild()
 ClassCommits.model_rebuild()
 DraftPicks.model_rebuild()
 ErrorResponse.model_rebuild()
@@ -936,6 +983,8 @@ MembersResponse.model_rebuild()
 NILSpend.model_rebuild()
 Period.model_rebuild()
 PeriodsResponse.model_rebuild()
+PlayerCareer.model_rebuild()
+PlayerCareerSeason.model_rebuild()
 PlayerSkills.model_rebuild()
 PlayerStat.model_rebuild()
 PlayerStatsResponse.model_rebuild()

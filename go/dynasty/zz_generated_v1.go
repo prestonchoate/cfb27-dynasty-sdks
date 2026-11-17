@@ -87,8 +87,10 @@ type SyncRunKind string
 
 // Known SyncRunKind values.
 const (
-	SyncRunKindLight  SyncRunKind = "light"
-	SyncRunKindWeekly SyncRunKind = "weekly"
+	SyncRunKindLight   SyncRunKind = "light"
+	SyncRunKindWeekly  SyncRunKind = "weekly"
+	SyncRunKindGrades  SyncRunKind = "grades"
+	SyncRunKindCareers SyncRunKind = "careers"
 )
 
 // TeamGameLocation is a string enum. Newer servers may send values not listed here.
@@ -166,6 +168,15 @@ type ListRostersScope string
 const (
 	ListRostersScopeUser ListRostersScope = "user"
 	ListRostersScopeAll  ListRostersScope = "all"
+)
+
+// ListCareersScope is a string enum. Newer servers may send values not listed here.
+type ListCareersScope string
+
+// Known ListCareersScope values.
+const (
+	ListCareersScopeUser ListCareersScope = "user"
+	ListCareersScopeAll  ListCareersScope = "all"
 )
 
 // ListLeagueHistoryKind is a string enum. Newer servers may send values not listed here.
@@ -285,6 +296,15 @@ type AwardsResponse struct {
 	// The season (calendar year) the data is from
 	Season int     `json:"season"`
 	Data   []Award `json:"data"`
+}
+
+// CareersResponse is a Dynasty API schema.
+type CareersResponse struct {
+	// The dynasty's EA league id
+	LeagueID int `json:"league_id"`
+	// Bumped whenever the dynasty's cached data changes; the ETag is built from it
+	DataVersion int            `json:"data_version"`
+	Data        []PlayerCareer `json:"data"`
 }
 
 // ClassCommits is a Dynasty API schema.
@@ -539,6 +559,39 @@ type PeriodsResponse struct {
 	// Bumped whenever the dynasty's cached data changes; the ETag is built from it
 	DataVersion int      `json:"data_version"`
 	Data        []Period `json:"data"`
+}
+
+// PlayerCareer is a Dynasty API schema.
+type PlayerCareer struct {
+	PlayerKey int `json:"player_key"`
+	// His team when read
+	TeamKey   int    `json:"team_key"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Position  string `json:"position"`
+	Jersey    int    `json:"jersey"`
+	Overall   int    `json:"overall"`
+	// The last completed season the read covers
+	CareerYear int `json:"career_year"`
+	// The /rosters season he was read from
+	RosterSeason int `json:"roster_season"`
+	// The period it was read in
+	PeriodID int `json:"period_id"`
+	// Oldest first; empty for a player who hasn't finished a season
+	Seasons []PlayerCareerSeason `json:"seasons"`
+}
+
+// PlayerCareerSeason is a Dynasty API schema.
+type PlayerCareerSeason struct {
+	// Calendar year
+	Season int `json:"season"`
+	// The team he played for that season
+	School string `json:"school"`
+	// He was on a user-coached team that season
+	UserControlled bool `json:"user_controlled"`
+	GamesPlayed    int  `json:"games_played"`
+	// By /player-stats' names, e.g. `passYards`, `defenseSacks` (half sacks are decimals)
+	Stats map[string]float64 `json:"stats"`
 }
 
 // PlayerSkills is a Dynasty API schema.
@@ -1131,6 +1184,20 @@ type ListRosterSkillsParams struct {
 	Player *int
 }
 
+// ListCareersParams holds the query parameters of Client.ListCareers. Nil fields are left out.
+type ListCareersParams struct {
+	// The read covering seasons through this one (`career_year`). Default: each rostered player's latest
+	Year *int
+	// Team key (his team when read). A CPU team's players need a paid plan (without one, only user teams match)
+	Team *int
+	// Player key. A CPU team's player needs a paid plan (without one, only user teams match)
+	Player *int
+	// Position, e.g. `QB`, `LEDG` (case-insensitive)
+	Position *string
+	// `user` (default): user teams. `all`: every FBS team, on paid plans (403 `plan_required` otherwise)
+	Scope *ListCareersScope
+}
+
 // ListSchoolGradesParams holds the query parameters of Client.ListSchoolGrades. Nil fields are left out.
 type ListSchoolGradesParams struct {
 	// Period id, or `current`. Default: the newest period with data for this endpoint.
@@ -1520,6 +1587,35 @@ func (c *Client) ListRosterSkills(ctx context.Context, params *ListRosterSkillsP
 	}
 	out := new(RosterSkillsResponse)
 	if err := c.t.do(ctx, c.dynastyID, "GET", "/rosters/skills", q, nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListCareers: Player careers: each rostered player's season-by-season stats from the in-game player card, read once per completed season (the card only adds a season once it's over; offseason reads catch seniors and draft picks before they leave). By default each player on the newest roster with his latest read; `year` returns one read, players who have since left included. User teams by default; on paid plans CPU teams too with `scope=all` or `team`. `player_key` and `team_key` match /rosters and /player-stats; `stats` uses /player-stats' names (the card has the counting stats and basic rates, not the advanced ones).
+//
+// GET /v1/careers
+func (c *Client) ListCareers(ctx context.Context, params *ListCareersParams) (*CareersResponse, error) {
+	q := url.Values{}
+	if params != nil {
+		if params.Year != nil {
+			q.Set("year", strconv.Itoa(*params.Year))
+		}
+		if params.Team != nil {
+			q.Set("team", strconv.Itoa(*params.Team))
+		}
+		if params.Player != nil {
+			q.Set("player", strconv.Itoa(*params.Player))
+		}
+		if params.Position != nil {
+			q.Set("position", *params.Position)
+		}
+		if params.Scope != nil {
+			q.Set("scope", string(*params.Scope))
+		}
+	}
+	out := new(CareersResponse)
+	if err := c.t.do(ctx, c.dynastyID, "GET", "/careers", q, nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil

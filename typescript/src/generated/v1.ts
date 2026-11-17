@@ -21,7 +21,7 @@ export type RosterPlayerClassYear = "FR" | "SO" | "JR" | "SR" | (string & {});
 export type RosterPlayerDevTrait = "Normal" | "Impact" | "Star" | "Elite" | (string & {});
 
 /** Known values; newer servers may send others. */
-export type SyncRunKind = "light" | "weekly" | (string & {});
+export type SyncRunKind = "light" | "weekly" | "grades" | "careers" | (string & {});
 
 /** Known values; newer servers may send others. */
 export type TeamGameLocation = "home" | "away" | (string & {});
@@ -46,6 +46,9 @@ export type ListRecruitingClassesType = "overall" | "recruits" | "transfers" | (
 
 /** Known values; newer servers may send others. */
 export type ListRostersScope = "user" | "all" | (string & {});
+
+/** Known values; newer servers may send others. */
+export type ListCareersScope = "user" | "all" | (string & {});
 
 /** Known values; newer servers may send others. */
 export type ListLeagueHistoryKind = "national_championship" | "conference_championship" | "award" | (string & {});
@@ -148,6 +151,14 @@ export interface AwardsResponse {
   /** The season (calendar year) the data is from */
   season: number;
   data: Award[];
+}
+
+export interface CareersResponse {
+  /** The dynasty's EA league id */
+  league_id: number;
+  /** Bumped whenever the dynasty's cached data changes; the ETag is built from it */
+  data_version: number;
+  data: PlayerCareer[];
 }
 
 export interface ClassCommits {
@@ -386,6 +397,37 @@ export interface PeriodsResponse {
   /** Bumped whenever the dynasty's cached data changes; the ETag is built from it */
   data_version: number;
   data: Period[];
+}
+
+export interface PlayerCareer {
+  player_key: number;
+  /** His team when read */
+  team_key: number;
+  first_name: string;
+  last_name: string;
+  position: string;
+  jersey: number;
+  overall: number;
+  /** The last completed season the read covers */
+  career_year: number;
+  /** The /rosters season he was read from */
+  roster_season: number;
+  /** The period it was read in */
+  period_id: number;
+  /** Oldest first; empty for a player who hasn't finished a season */
+  seasons: PlayerCareerSeason[];
+}
+
+export interface PlayerCareerSeason {
+  /** Calendar year */
+  season: number;
+  /** The team he played for that season */
+  school: string;
+  /** He was on a user-coached team that season */
+  user_controlled: boolean;
+  games_played: number;
+  /** By /player-stats' names, e.g. `passYards`, `defenseSacks` (half sacks are decimals) */
+  stats: Record<string, number>;
 }
 
 export interface PlayerSkills {
@@ -947,6 +989,20 @@ export interface ListRosterSkillsQuery {
   player?: number;
 }
 
+/** Query parameters for {@link DynastyAPI.listCareers}. */
+export interface ListCareersQuery {
+  /** The read covering seasons through this one (`career_year`). Default: each rostered player's latest */
+  year?: number;
+  /** Team key (his team when read). A CPU team's players need a paid plan (without one, only user teams match) */
+  team?: number;
+  /** Player key. A CPU team's player needs a paid plan (without one, only user teams match) */
+  player?: number;
+  /** Position, e.g. `QB`, `LEDG` (case-insensitive) */
+  position?: string;
+  /** `user` (default): user teams. `all`: every FBS team, on paid plans (403 `plan_required` otherwise) */
+  scope?: ListCareersScope;
+}
+
 /** Query parameters for {@link DynastyAPI.listSchoolGrades}. */
 export interface ListSchoolGradesQuery {
   /** Period id, or `current`. Default: the newest period with data for this endpoint. */
@@ -1159,6 +1215,15 @@ export abstract class DynastyAPI extends Transport {
    */
   listRosterSkills(query?: ListRosterSkillsQuery, options?: RequestOptions): Promise<RosterSkillsResponse> {
     return this.request<RosterSkillsResponse>("GET", "/rosters/skills", { query, ...options });
+  }
+
+  /**
+   * Player careers: each rostered player's season-by-season stats from the in-game player card, read once per completed season (the card only adds a season once it's over; offseason reads catch seniors and draft picks before they leave). By default each player on the newest roster with his latest read; `year` returns one read, players who have since left included. User teams by default; on paid plans CPU teams too with `scope=all` or `team`. `player_key` and `team_key` match /rosters and /player-stats; `stats` uses /player-stats' names (the card has the counting stats and basic rates, not the advanced ones).
+   *
+   * `GET /v1/careers`
+   */
+  listCareers(query?: ListCareersQuery, options?: RequestOptions): Promise<CareersResponse> {
+    return this.request<CareersResponse>("GET", "/careers", { query, ...options });
   }
 
   /**
