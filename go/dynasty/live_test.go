@@ -37,6 +37,7 @@ func TestLive(t *testing.T) {
 		"ListRecruitingClasses":  func() error { _, err := c.ListRecruitingClasses(ctx, nil); return err },
 		"ListRosters":            func() error { _, err := c.ListRosters(ctx, nil); return err },
 		"ListRosterSkills":       func() error { _, err := c.ListRosterSkills(ctx, nil); return err },
+		"ListCareers":            func() error { _, err := c.ListCareers(ctx, nil); return err },
 		"ListSyncRuns":           func() error { _, err := c.ListSyncRuns(ctx); return err },
 		"ListSchoolGrades":       func() error { _, err := c.ListSchoolGrades(ctx, nil); return err },
 		"ListPlayingStyleGrades": func() error { _, err := c.ListPlayingStyleGrades(ctx, nil); return err },
