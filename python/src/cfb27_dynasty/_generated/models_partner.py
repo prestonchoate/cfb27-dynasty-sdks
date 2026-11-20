@@ -158,6 +158,7 @@ class DynastyAccount(Model):
     account: str
     status: DynastyAccountStatus
     fetched_at: datetime | None = None
+    """When this account's list was fetched from EA; older than 15 minutes while the account is syncing"""
     error: str | None = None
     dynasties: list[Dynasty]
 
@@ -203,6 +204,7 @@ class InviteAccount(Model):
     account: str
     status: InviteAccountStatus
     fetched_at: datetime | None = None
+    """When this account's list was fetched from EA; older than 15 minutes while the account is syncing"""
     error: str | None = None
     invites: list[Invite]
 

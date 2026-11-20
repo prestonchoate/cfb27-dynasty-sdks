@@ -3698,6 +3698,12 @@
      "abilities",
      "skill_points",
      "skill_groups",
+     "xp",
+     "xp_to_level",
+     "captain",
+     "injured",
+     "season_health",
+     "career_health",
      "period_id"
     ],
     "properties": {
@@ -3792,11 +3798,74 @@
        "$ref": "#/components/schemas/SkillGroup"
       }
      },
+     "xp": {
+      "type": [
+       "integer",
+       "null"
+      ],
+      "description": "Experience toward the player's next level. A level earns one skill point, and XP starts again from 0. Null when the roster was read before XP and health were decoded (also true of the fields through career_health); the next read fills them."
+     },
+     "xp_to_level": {
+      "type": [
+       "integer",
+       "null"
+      ],
+      "description": "XP the player needs for a level, by overall (1,500 at 60 and below up to 2,500 at 95+)"
+     },
+     "captain": {
+      "type": [
+       "boolean",
+       "null"
+      ],
+      "description": "Whether the player is a team captain"
+     },
+     "injured": {
+      "type": [
+       "boolean",
+       "null"
+      ],
+      "description": "Whether the player is injured; injury says with what"
+     },
+     "injury": {
+      "$ref": "#/components/schemas/PlayerInjury"
+     },
+     "season_health": {
+      "type": [
+       "integer",
+       "null"
+      ],
+      "description": "Season health, percent (the player card's S bar). Once it is empty the player no longer recovers wear and tear"
+     },
+     "career_health": {
+      "type": [
+       "integer",
+       "null"
+      ],
+      "description": "Career health, percent (the player card's C bar)"
+     },
      "period_id": {
       "type": "integer",
       "description": "The period the roster was read in"
      }
     }
+   },
+   "PlayerInjury": {
+    "type": "object",
+    "description": "An injured player's injury",
+    "properties": {
+     "type": {
+      "type": "string",
+      "description": "The game's injury type, e.g. LegGroinPull, KneeACLPartialTear, RibPectoralTear"
+     },
+     "weeks_out": {
+      "type": "integer",
+      "description": "Weeks the player is out, as the player card shows it (\"OUT 2 WEEKS\")"
+     }
+    },
+    "required": [
+     "type",
+     "weeks_out"
+    ]
    },
    "RosterSkillsResponse": {
     "type": "object",
