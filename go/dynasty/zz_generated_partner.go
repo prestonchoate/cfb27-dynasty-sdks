@@ -203,11 +203,12 @@ type Dynasty struct {
 
 // DynastyAccount is a Dynasty API partner API schema.
 type DynastyAccount struct {
-	Account   string               `json:"account"`
-	Status    DynastyAccountStatus `json:"status"`
-	FetchedAt *time.Time           `json:"fetched_at,omitempty"`
-	Error     *string              `json:"error,omitempty"`
-	Dynasties []Dynasty            `json:"dynasties"`
+	Account string               `json:"account"`
+	Status  DynastyAccountStatus `json:"status"`
+	// When this account's list was fetched from EA; older than 15 minutes while the account is syncing
+	FetchedAt *time.Time `json:"fetched_at,omitempty"`
+	Error     *string    `json:"error,omitempty"`
+	Dynasties []Dynasty  `json:"dynasties"`
 }
 
 // Event is a Dynasty API partner API schema.
@@ -252,11 +253,12 @@ type Invite struct {
 
 // InviteAccount is a Dynasty API partner API schema.
 type InviteAccount struct {
-	Account   string              `json:"account"`
-	Status    InviteAccountStatus `json:"status"`
-	FetchedAt *time.Time          `json:"fetched_at,omitempty"`
-	Error     *string             `json:"error,omitempty"`
-	Invites   []Invite            `json:"invites"`
+	Account string              `json:"account"`
+	Status  InviteAccountStatus `json:"status"`
+	// When this account's list was fetched from EA; older than 15 minutes while the account is syncing
+	FetchedAt *time.Time `json:"fetched_at,omitempty"`
+	Error     *string    `json:"error,omitempty"`
+	Invites   []Invite   `json:"invites"`
 }
 
 // InvitesResponse is a Dynasty API partner API schema.
@@ -400,7 +402,7 @@ func (c *PartnerClient) GetMe(ctx context.Context) (*Me, error) {
 
 // ListDynasties: The dynasties each of your EA accounts is in
 //
-// From lists at most 15 minutes old; an older list is fetched from EA, which ends any game session the account has open.
+// From lists at most 15 minutes old; an older list is fetched from EA, which ends any game session the account has open. While an account is syncing a dynasty, its last list is returned at once instead (`fetched_at` says how old) and fetched again when the sync ends.
 //
 // GET /partner/v1/dynasties
 func (c *PartnerClient) ListDynasties(ctx context.Context) (*DynastiesResponse, error) {
@@ -518,7 +520,7 @@ func (c *PartnerClient) FinishJoin(ctx context.Context, id int, body *FinishJoin
 
 // ListInvites: Pending dynasty invites for each of your EA accounts
 //
-// From lists at most 15 minutes old (fetched from EA when older, which ends any game session the account has open). Joining is: list invites, get an invite's choices, then join with a team_id.
+// From lists at most 15 minutes old (fetched from EA when older, which ends any game session the account has open). While an account is syncing a dynasty, its last list is returned at once instead (`fetched_at` says how old) and fetched again when the sync ends. Joining is: list invites, get an invite's choices, then join with a team_id.
 //
 // GET /partner/v1/invites
 func (c *PartnerClient) ListInvites(ctx context.Context, params *ListInvitesParams) (*InvitesResponse, error) {

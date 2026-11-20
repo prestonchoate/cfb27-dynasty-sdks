@@ -594,6 +594,14 @@ type PlayerCareerSeason struct {
 	Stats map[string]float64 `json:"stats"`
 }
 
+// PlayerInjury: An injured player's injury
+type PlayerInjury struct {
+	// The game's injury type, e.g. LegGroinPull, KneeACLPartialTear, RibPectoralTear
+	Type string `json:"type"`
+	// Weeks the player is out, as the player card shows it ("OUT 2 WEEKS")
+	WeeksOut int `json:"weeks_out"`
+}
+
 // PlayerSkills is a Dynasty API schema.
 type PlayerSkills struct {
 	PlayerKey int    `json:"player_key"`
@@ -841,6 +849,19 @@ type RosterPlayer struct {
 	// Unspent skill points
 	SkillPoints int          `json:"skill_points"`
 	SkillGroups []SkillGroup `json:"skill_groups"`
+	// Experience toward the player's next level. A level earns one skill point, and XP starts again from 0. Null when the roster was read before XP and health were decoded (also true of the fields through career_health); the next read fills them.
+	Xp *int `json:"xp"`
+	// XP the player needs for a level, by overall (1,500 at 60 and below up to 2,500 at 95+)
+	XpToLevel *int `json:"xp_to_level"`
+	// Whether the player is a team captain
+	Captain *bool `json:"captain"`
+	// Whether the player is injured; injury says with what
+	Injured *bool         `json:"injured"`
+	Injury  *PlayerInjury `json:"injury,omitempty"`
+	// Season health, percent (the player card's S bar). Once it is empty the player no longer recovers wear and tear
+	SeasonHealth *int `json:"season_health"`
+	// Career health, percent (the player card's C bar)
+	CareerHealth *int `json:"career_health"`
 	// The period the roster was read in
 	PeriodID int `json:"period_id"`
 }

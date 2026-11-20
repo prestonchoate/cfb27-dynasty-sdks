@@ -430,6 +430,14 @@ export interface PlayerCareerSeason {
   stats: Record<string, number>;
 }
 
+/** An injured player's injury */
+export interface PlayerInjury {
+  /** The game's injury type, e.g. LegGroinPull, KneeACLPartialTear, RibPectoralTear */
+  type: string;
+  /** Weeks the player is out, as the player card shows it ("OUT 2 WEEKS") */
+  weeks_out: number;
+}
+
 export interface PlayerSkills {
   player_key: number;
   team_key: number;
@@ -660,6 +668,19 @@ export interface RosterPlayer {
   /** Unspent skill points */
   skill_points: number;
   skill_groups: SkillGroup[];
+  /** Experience toward the player's next level. A level earns one skill point, and XP starts again from 0. Null when the roster was read before XP and health were decoded (also true of the fields through career_health); the next read fills them. */
+  xp: number | null;
+  /** XP the player needs for a level, by overall (1,500 at 60 and below up to 2,500 at 95+) */
+  xp_to_level: number | null;
+  /** Whether the player is a team captain */
+  captain: boolean | null;
+  /** Whether the player is injured; injury says with what */
+  injured: boolean | null;
+  injury?: PlayerInjury;
+  /** Season health, percent (the player card's S bar). Once it is empty the player no longer recovers wear and tear */
+  season_health: number | null;
+  /** Career health, percent (the player card's C bar) */
+  career_health: number | null;
   /** The period the roster was read in */
   period_id: number;
 }

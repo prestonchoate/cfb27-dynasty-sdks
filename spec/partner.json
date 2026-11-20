@@ -68,7 +68,7 @@
      "Dynasties"
     ],
     "summary": "The dynasties each of your EA accounts is in",
-    "description": "From lists at most 15 minutes old; an older list is fetched from EA, which ends any game session the account has open.",
+    "description": "From lists at most 15 minutes old; an older list is fetched from EA, which ends any game session the account has open. While an account is syncing a dynasty, its last list is returned at once instead (`fetched_at` says how old) and fetched again when the sync ends.",
     "responses": {
      "200": {
       "description": "OK",
@@ -569,7 +569,7 @@
       }
      },
      "409": {
-      "description": "team_taken (EA shows the school taken), needs_reauth or unsupported; or ea_refused: EA refused with a reason of its own, in the message (e.g. \"EA refused the request: The league is full.\"). Trying again gets the same answer until that changes in the game",
+      "description": "team_taken (EA shows the school taken), needs_reauth or unsupported; game_login_refused: EA's game servers won't log the account in (e.g. a PlayStation or Xbox account; sync accounts must be PC accounts that own the game); or ea_refused: EA refused with a reason of its own, in the message (e.g. \"EA refused the request: The league is full.\"). Trying again gets the same answer until that changes in the game",
       "content": {
        "application/json": {
         "schema": {
@@ -588,28 +588,8 @@
        }
       }
      },
-     "502": {
-      "description": "ea_failed: EA's servers failed or dropped the connection; try again in a minute",
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/Error"
-        }
-       }
-      }
-     },
      "503": {
-      "description": "paused; or account_busy: the account was syncing a dynasty for 45 s (Retry-After: 120)",
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/Error"
-        }
-       }
-      }
-     },
-     "504": {
-      "description": "ea_timeout: EA didn't answer within 90 s (Retry-After: 120)",
+      "description": "paused; account_busy: the account was syncing a dynasty for 45 s (Retry-After: 120); ea_timeout: EA didn't answer within 90 s (Retry-After: 120); or ea_failed: EA's servers failed or dropped the connection, try again in a minute",
       "content": {
        "application/json": {
         "schema": {
@@ -631,7 +611,7 @@
      "Invites"
     ],
     "summary": "Pending dynasty invites for each of your EA accounts",
-    "description": "From lists at most 15 minutes old (fetched from EA when older, which ends any game session the account has open). Joining is: list invites, get an invite's choices, then join with a team_id.",
+    "description": "From lists at most 15 minutes old (fetched from EA when older, which ends any game session the account has open). While an account is syncing a dynasty, its last list is returned at once instead (`fetched_at` says how old) and fetched again when the sync ends. Joining is: list invites, get an invite's choices, then join with a team_id.",
     "parameters": [
      {
       "name": "refresh",
@@ -709,17 +689,7 @@
       }
      },
      "409": {
-      "description": "needs_reauth; or ea_refused: EA refused with a reason of its own, in the message (e.g. \"EA refused the request: The league is full.\"). Trying again gets the same answer until that changes in the game",
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/Error"
-        }
-       }
-      }
-     },
-     "502": {
-      "description": "ea_failed: EA's servers failed or dropped the connection; try again in a minute",
+      "description": "needs_reauth; game_login_refused: EA's game servers won't log the account in (e.g. a PlayStation or Xbox account; sync accounts must be PC accounts that own the game); or ea_refused: EA refused with a reason of its own, in the message (e.g. \"EA refused the request: The league is full.\"). Trying again gets the same answer until that changes in the game",
       "content": {
        "application/json": {
         "schema": {
@@ -729,17 +699,7 @@
       }
      },
      "503": {
-      "description": "paused; or account_busy: the account was syncing a dynasty for 45 s (Retry-After: 120)",
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/Error"
-        }
-       }
-      }
-     },
-     "504": {
-      "description": "ea_timeout: EA didn't answer within 90 s (Retry-After: 120)",
+      "description": "paused; account_busy: the account was syncing a dynasty for 45 s (Retry-After: 120); ea_timeout: EA didn't answer within 90 s (Retry-After: 120); or ea_failed: EA's servers failed or dropped the connection, try again in a minute",
       "content": {
        "application/json": {
         "schema": {
@@ -828,7 +788,7 @@
       }
      },
      "409": {
-      "description": "team_taken, needs_reauth or unsupported; or ea_refused: EA refused with a reason of its own, in the message (e.g. \"EA refused the request: The league is full.\"). Trying again gets the same answer until that changes in the game",
+      "description": "team_taken, needs_reauth or unsupported; game_login_refused: EA's game servers won't log the account in (e.g. a PlayStation or Xbox account; sync accounts must be PC accounts that own the game); or ea_refused: EA refused with a reason of its own, in the message (e.g. \"EA refused the request: The league is full.\"). Trying again gets the same answer until that changes in the game",
       "content": {
        "application/json": {
         "schema": {
@@ -847,28 +807,8 @@
        }
       }
      },
-     "502": {
-      "description": "ea_failed: EA's servers failed or dropped the connection; try again in a minute",
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/Error"
-        }
-       }
-      }
-     },
      "503": {
-      "description": "paused; or account_busy: the account was syncing a dynasty for 45 s (Retry-After: 120)",
-      "content": {
-       "application/json": {
-        "schema": {
-         "$ref": "#/components/schemas/Error"
-        }
-       }
-      }
-     },
-     "504": {
-      "description": "ea_timeout: EA didn't answer within 90 s (Retry-After: 120)",
+      "description": "paused; account_busy: the account was syncing a dynasty for 45 s (Retry-After: 120); ea_timeout: EA didn't answer within 90 s (Retry-After: 120); or ea_failed: EA's servers failed or dropped the connection, try again in a minute",
       "content": {
        "application/json": {
         "schema": {
@@ -1319,7 +1259,8 @@
      },
      "fetched_at": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "When this account's list was fetched from EA; older than 15 minutes while the account is syncing"
      },
      "error": {
       "type": "string"
@@ -1498,7 +1439,8 @@
      },
      "fetched_at": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "When this account's list was fetched from EA; older than 15 minutes while the account is syncing"
      },
      "error": {
       "type": "string"

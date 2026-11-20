@@ -61,6 +61,7 @@ __all__ = [
     "PeriodsResponse",
     "PlayerCareer",
     "PlayerCareerSeason",
+    "PlayerInjury",
     "PlayerSkills",
     "PlayerStat",
     "PlayerStatsResponse",
@@ -521,6 +522,14 @@ class PlayerCareerSeason(Model):
     """By /player-stats' names, e.g. `passYards`, `defenseSacks` (half sacks are decimals)"""
 
 
+class PlayerInjury(Model):
+    """An injured player's injury"""
+    type: str
+    """The game's injury type, e.g. LegGroinPull, KneeACLPartialTear, RibPectoralTear"""
+    weeks_out: int
+    """Weeks the player is out, as the player card shows it ("OUT 2 WEEKS")"""
+
+
 class PlayerSkills(Model):
     player_key: int
     team_key: int
@@ -751,6 +760,19 @@ class RosterPlayer(Model):
     skill_points: int
     """Unspent skill points"""
     skill_groups: list[SkillGroup]
+    xp: int | None
+    """Experience toward the player's next level. A level earns one skill point, and XP starts again from 0. Null when the roster was read before XP and health were decoded (also true of the fields through career_health); the next read fills them."""
+    xp_to_level: int | None
+    """XP the player needs for a level, by overall (1,500 at 60 and below up to 2,500 at 95+)"""
+    captain: bool | None
+    """Whether the player is a team captain"""
+    injured: bool | None
+    """Whether the player is injured; injury says with what"""
+    injury: PlayerInjury | None = None
+    season_health: int | None
+    """Season health, percent (the player card's S bar). Once it is empty the player no longer recovers wear and tear"""
+    career_health: int | None
+    """Career health, percent (the player card's C bar)"""
     period_id: int
     """The period the roster was read in"""
 
@@ -985,6 +1007,7 @@ Period.model_rebuild()
 PeriodsResponse.model_rebuild()
 PlayerCareer.model_rebuild()
 PlayerCareerSeason.model_rebuild()
+PlayerInjury.model_rebuild()
 PlayerSkills.model_rebuild()
 PlayerStat.model_rebuild()
 PlayerStatsResponse.model_rebuild()

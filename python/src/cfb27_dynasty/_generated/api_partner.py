@@ -34,7 +34,7 @@ class PartnerAPI:
     ) -> DynastiesResponse:
         """The dynasties each of your EA accounts is in
 
-        From lists at most 15 minutes old; an older list is fetched from EA, which ends any game session the account has open.
+        From lists at most 15 minutes old; an older list is fetched from EA, which ends any game session the account has open. While an account is syncing a dynasty, its last list is returned at once instead (`fetched_at` says how old) and fetched again when the sync ends.
 
         ``GET /partner/v1/dynasties``
         """
@@ -151,7 +151,7 @@ class PartnerAPI:
     ) -> InvitesResponse:
         """Pending dynasty invites for each of your EA accounts
 
-        From lists at most 15 minutes old (fetched from EA when older, which ends any game session the account has open). Joining is: list invites, get an invite's choices, then join with a team_id.
+        From lists at most 15 minutes old (fetched from EA when older, which ends any game session the account has open). While an account is syncing a dynasty, its last list is returned at once instead (`fetched_at` says how old) and fetched again when the sync ends. Joining is: list invites, get an invite's choices, then join with a team_id.
 
         ``GET /partner/v1/invites``
         """
@@ -256,7 +256,7 @@ class AsyncPartnerAPI:
     ) -> DynastiesResponse:
         """The dynasties each of your EA accounts is in
 
-        From lists at most 15 minutes old; an older list is fetched from EA, which ends any game session the account has open.
+        From lists at most 15 minutes old; an older list is fetched from EA, which ends any game session the account has open. While an account is syncing a dynasty, its last list is returned at once instead (`fetched_at` says how old) and fetched again when the sync ends.
 
         ``GET /partner/v1/dynasties``
         """
@@ -373,7 +373,7 @@ class AsyncPartnerAPI:
     ) -> InvitesResponse:
         """Pending dynasty invites for each of your EA accounts
 
-        From lists at most 15 minutes old (fetched from EA when older, which ends any game session the account has open). Joining is: list invites, get an invite's choices, then join with a team_id.
+        From lists at most 15 minutes old (fetched from EA when older, which ends any game session the account has open). While an account is syncing a dynasty, its last list is returned at once instead (`fetched_at` says how old) and fetched again when the sync ends. Joining is: list invites, get an invite's choices, then join with a team_id.
 
         ``GET /partner/v1/invites``
         """
